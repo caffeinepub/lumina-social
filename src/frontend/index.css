@@ -1,0 +1,290 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Outfit";
+  src: url("/assets/fonts/Outfit-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sora";
+  src: url("/assets/fonts/Sora-Variable.woff2") format("woff2");
+  font-weight: 100 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/assets/fonts/CabinetGrotesk-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 1rem;
+    /* Glass Liquid - Dark base violet/indigo theme */
+    --background: 0.08 0.015 270;
+    --foreground: 0.97 0 0;
+    --card: 0.1 0.02 270;
+    --card-foreground: 0.97 0 0;
+    --popover: 0.12 0.025 270;
+    --popover-foreground: 0.97 0 0;
+    --primary: 0.65 0.25 290;
+    --primary-foreground: 0.97 0 0;
+    --secondary: 0.55 0.2 340;
+    --secondary-foreground: 0.97 0 0;
+    --muted: 0.15 0.02 270;
+    --muted-foreground: 0.6 0.05 270;
+    --accent: 0.75 0.18 200;
+    --accent-foreground: 0.08 0.01 200;
+    --destructive: 0.65 0.25 25;
+    --destructive-foreground: 0.97 0 0;
+    --border: 1 0 0 / 10%;
+    --input: 1 0 0 / 8%;
+    --ring: 0.65 0.25 290;
+    --chart-1: 0.65 0.25 290;
+    --chart-2: 0.55 0.2 340;
+    --chart-3: 0.75 0.18 200;
+    --chart-4: 0.7 0.22 60;
+    --chart-5: 0.65 0.22 150;
+    --sidebar: 0.09 0.018 270;
+    --sidebar-foreground: 0.97 0 0;
+    --sidebar-primary: 0.65 0.25 290;
+    --sidebar-primary-foreground: 0.97 0 0;
+    --sidebar-accent: 0.15 0.02 270;
+    --sidebar-accent-foreground: 0.97 0 0;
+    --sidebar-border: 1 0 0 / 8%;
+    --sidebar-ring: 0.65 0.25 290;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background: radial-gradient(
+        ellipse 80% 60% at 50% -10%,
+        oklch(0.18 0.08 280 / 0.6),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 60% 40% at 80% 80%,
+        oklch(0.15 0.06 320 / 0.4),
+        transparent
+      ),
+      oklch(0.07 0.015 270);
+    min-height: 100vh;
+    font-family: "Outfit", "Sora", system-ui, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.65 0.25 290 / 0.3);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.65 0.25 290 / 0.5);
+  }
+}
+
+@layer utilities {
+  /* Glass morphism utility classes */
+  .glass {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-heavy {
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .glass-card {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.25rem;
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 20px oklch(0.65 0.25 290 / 0.35),
+      0 0 60px oklch(0.65 0.25 290 / 0.1);
+  }
+
+  .glow-secondary {
+    box-shadow: 0 0 20px oklch(0.55 0.2 340 / 0.35),
+      0 0 60px oklch(0.55 0.2 340 / 0.1);
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 20px oklch(0.75 0.18 200 / 0.35),
+      0 0 60px oklch(0.75 0.18 200 / 0.1);
+  }
+
+  .gradient-text {
+    background: linear-gradient(
+      135deg,
+      oklch(0.75 0.25 290),
+      oklch(0.65 0.25 340),
+      oklch(0.75 0.22 200)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .gradient-bg {
+    background: linear-gradient(
+      135deg,
+      oklch(0.65 0.25 290),
+      oklch(0.55 0.25 340)
+    );
+  }
+
+  .gradient-border {
+    position: relative;
+    background: linear-gradient(
+        135deg,
+        oklch(0.65 0.25 290),
+        oklch(0.55 0.25 340),
+        oklch(0.75 0.22 200)
+      )
+      border-box;
+    border: 1.5px solid transparent;
+  }
+
+  .story-ring {
+    background: linear-gradient(
+      135deg,
+      oklch(0.75 0.25 290),
+      oklch(0.6 0.28 340),
+      oklch(0.75 0.22 200)
+    );
+    animation: story-ring-rotate 3s linear infinite;
+  }
+
+  .story-ring-viewed {
+    background: rgba(255, 255, 255, 0.2);
+    animation: none;
+  }
+}
+
+@keyframes story-ring-rotate {
+  from {
+    filter: hue-rotate(0deg);
+  }
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 10px oklch(0.65 0.25 290 / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px oklch(0.65 0.25 290 / 0.6),
+      0 0 50px oklch(0.65 0.25 290 / 0.2);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes heart-burst {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.shimmer-bg {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.02) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-heart-burst {
+  animation: heart-burst 0.6s ease-out forwards;
+}
+
+.typing-dot {
+  animation: typing 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
