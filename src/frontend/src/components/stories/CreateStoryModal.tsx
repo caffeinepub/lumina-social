@@ -1,8 +1,8 @@
 import { GlassButton } from "@/components/glass/GlassButton";
-import { GlassInput } from "@/components/glass/GlassInput";
+import { MusicSearchPicker } from "@/components/music/MusicSearchPicker";
 import { STORY_GRADIENTS } from "@/data/mockData";
-import type { MockStory } from "@/types";
-import { Music, X } from "lucide-react";
+import type { MockStory, MusicTrack } from "@/types";
+import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 
@@ -27,7 +27,7 @@ export function CreateStoryModal({
 }: CreateStoryModalProps) {
   const [selectedGradient, setSelectedGradient] = useState(STORY_GRADIENTS[0]);
   const [text, setText] = useState("");
-  const [music, setMusic] = useState("");
+  const [music, setMusic] = useState<MusicTrack | undefined>(undefined);
 
   const handleShare = () => {
     const story: MockStory = {
@@ -48,13 +48,14 @@ export function CreateStoryModal({
       },
       imageGradient: selectedGradient,
       text: text.trim() || undefined,
+      musicTrack: music,
       timestamp: new Date(),
       isViewed: false,
       duration: 5000,
     };
     onShare(story);
     setText("");
-    setMusic("");
+    setMusic(undefined);
     setSelectedGradient(STORY_GRADIENTS[0]);
     onClose();
   };
@@ -135,13 +136,10 @@ export function CreateStoryModal({
 
                 {/* Music */}
                 <div>
-                  <GlassInput
-                    icon={<Music size={14} />}
-                    placeholder="Add music track..."
-                    value={music}
-                    onChange={(e) => setMusic(e.target.value)}
-                    className="text-sm"
-                  />
+                  <p className="text-xs text-white/50 mb-2 font-medium uppercase tracking-wider">
+                    Music (optional)
+                  </p>
+                  <MusicSearchPicker value={music} onChange={setMusic} />
                 </div>
               </div>
 

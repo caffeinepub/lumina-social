@@ -1,4 +1,8 @@
+import { useAuthContext } from "@/components/auth/AuthContext";
+import { CommentDrawer } from "@/components/feed/CommentDrawer";
+import { ShareModal } from "@/components/feed/ShareModal";
 import { GlassAvatar } from "@/components/glass/GlassAvatar";
+import { GlassInput } from "@/components/glass/GlassInput";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -6,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useApp } from "@/context/AppContext";
-import { formatCount, formatRelativeTime } from "@/data/mockData";
+import { MOCK_USERS, formatCount, formatRelativeTime } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import type { MockPost } from "@/types";
 import { Link } from "@tanstack/react-router";
@@ -27,9 +31,13 @@ interface PostCardProps {
 }
 
 export function PostCard({ post }: PostCardProps) {
-  const { toggleLike, toggleSave } = useApp();
+  const { toggleLike, toggleSave, addComment } = useApp();
+  const { currentUser } = useAuthContext();
   const [showHeart, setShowHeart] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [isCommentDrawerOpen, setIsCommentDrawerOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [inlineCommentText, setInlineCommentText] = useState("");
   const lastTapRef = useRef(0);
 
   const handleDoubleTap = useCallback(() => {
@@ -58,6 +66,42 @@ export function PostCard({ post }: PostCardProps) {
       duration: 2000,
     });
   }, [post.id, post.isSaved, toggleSave]);
+
+  const getCommentAuthor = useCallback(() => {
+    if (currentUser) {
+      return {
+        id: "me",
+        username: currentUser.username,
+        displayName: currentUser.displayName,
+        bio: currentUser.bio ?? "",
+        avatarUrl:
+          currentUser.avatarUrl ||
+          `https://i.pravatar.cc/150?u=${currentUser.username}`,
+        websiteUrl: "",
+        isPrivate: false,
+        followersCount: 0,
+        followingCount: 0,
+        postsCount: 0,
+        isFollowing: false,
+        isVerified: false,
+      };
+    }
+    return MOCK_USERS[0];
+  }, [currentUser]);
+
+  const handleAddComment = useCallback(
+    (text: string) => {
+      addComment(post.id, text, getCommentAuthor());
+    },
+    [post.id, addComment, getCommentAuthor],
+  );
+
+  const handleInlineCommentSubmit = useCallback(() => {
+    const trimmed = inlineCommentText.trim();
+    if (!trimmed) return;
+    handleAddComment(trimmed);
+    setInlineCommentText("");
+  }, [inlineCommentText, handleAddComment]);
 
   return (
     <motion.article
@@ -123,14 +167,17 @@ export function PostCard({ post }: PostCardProps) {
             <DropdownMenuItem className="hover:bg-white/10 cursor-pointer text-white/80">
               Mute
             </DropdownMenuItem>
-            <DropdownMenuItem className="hover:bg-white/10 cursor-pointer text-white/80">
+            <DropdownMenuItem
+              className="hover:bg-white/10 cursor-pointer text-white/80"
+              onClick={() => setIsShareModalOpen(true)}
+            >
               Share
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      {/* Image area - using button for semantic correctness */}
+      {/* Image area */}
       <button
         type="button"
         className="relative w-full aspect-square cursor-pointer overflow-hidden block"
@@ -188,7 +235,7 @@ export function PostCard({ post }: PostCardProps) {
 
             <button
               type="button"
-              onClick={() => setIsCommentsOpen(!isCommentsOpen)}
+              onClick={() => setIsCommentDrawerOpen(true)}
               className="text-white/70 hover:text-white transition-colors"
               aria-label="View comments"
             >
@@ -199,9 +246,7 @@ export function PostCard({ post }: PostCardProps) {
               type="button"
               className="text-white/70 hover:text-white transition-colors"
               aria-label="Share post"
-              onClick={() =>
-                toast("Link copied to clipboard!", { duration: 2000 })
-              }
+              onClick={() => setIsShareModalOpen(true)}
             >
               <Send size={20} />
             </button>
@@ -254,11 +299,12 @@ export function PostCard({ post }: PostCardProps) {
             onClick={() => setIsCommentsOpen(!isCommentsOpen)}
             className="text-xs text-white/40 hover:text-white/60 transition-colors mb-1"
           >
-            View all {post.comments.length} comments
+            View all {post.comments.length} comment
+            {post.comments.length !== 1 ? "s" : ""}
           </button>
         )}
 
-        {/* Comments expanded */}
+        {/* Inline comments expanded */}
         <AnimatePresence>
           {isCommentsOpen && (
             <motion.div
@@ -283,6 +329,34 @@ export function PostCard({ post }: PostCardProps) {
                   </p>
                 </div>
               ))}
+
+              {/* Inline comment input */}
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex-1">
+                  <GlassInput
+                    placeholder="Add a comment..."
+                    value={inlineCommentText}
+                    onChange={(e) => setInlineCommentText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleInlineCommentSubmit();
+                      }
+                    }}
+                    className="text-xs h-8"
+                  />
+                </div>
+                <motion.button
+                  type="button"
+                  onClick={handleInlineCommentSubmit}
+                  disabled={!inlineCommentText.trim()}
+                  whileTap={{ scale: 0.9 }}
+                  className="w-8 h-8 rounded-full gradient-bg flex items-center justify-center disabled:opacity-40"
+                  aria-label="Send comment"
+                >
+                  <Send size={13} className="text-white" />
+                </motion.button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -292,6 +366,24 @@ export function PostCard({ post }: PostCardProps) {
           {formatRelativeTime(post.timestamp)}
         </p>
       </div>
+
+      {/* Comment Drawer */}
+      <CommentDrawer
+        isOpen={isCommentDrawerOpen}
+        onClose={() => setIsCommentDrawerOpen(false)}
+        comments={post.comments}
+        onAddComment={handleAddComment}
+        title="Comments"
+      />
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        postId={post.id}
+        postImageUrl={post.imageUrl}
+        caption={post.caption}
+      />
     </motion.article>
   );
 }

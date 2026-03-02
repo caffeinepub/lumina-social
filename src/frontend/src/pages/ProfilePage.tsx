@@ -1,6 +1,6 @@
+import { useAuthContext } from "@/components/auth/AuthContext";
 import { GlassAvatar } from "@/components/glass/GlassAvatar";
 import { GlassButton } from "@/components/glass/GlassButton";
-import { GlassCard } from "@/components/glass/GlassCard";
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApp } from "@/context/AppContext";
@@ -10,9 +10,9 @@ import {
   MOCK_USERS,
   formatCount,
 } from "@/data/mockData";
-import { cn } from "@/lib/utils";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
+  Bookmark,
   Film,
   Globe,
   Grid,
@@ -52,10 +52,15 @@ function PostGrid({ posts }: { posts: ReturnType<typeof useApp>["posts"] }) {
             transition={{ delay: i * 0.03 }}
             onClick={() => setSelectedPost(post.id)}
             onKeyDown={(e) => e.key === "Enter" && setSelectedPost(post.id)}
-            className="aspect-square overflow-hidden cursor-pointer group relative"
-            style={{ background: post.imageUrl }}
+            className="aspect-square overflow-hidden cursor-pointer group relative bg-black/20"
             aria-label="View post"
           >
+            <img
+              src={post.imageUrl}
+              alt={post.caption}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-200 flex items-center justify-center">
               <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-4 text-white text-sm font-semibold">
                 <span>♥ {formatCount(post.likes)}</span>
@@ -88,9 +93,10 @@ function PostGrid({ posts }: { posts: ReturnType<typeof useApp>["posts"] }) {
                 if (!post) return null;
                 return (
                   <>
-                    <div
-                      className="aspect-square"
-                      style={{ background: post.imageUrl }}
+                    <img
+                      src={post.imageUrl}
+                      alt={post.caption}
+                      className="w-full aspect-square object-cover"
                     />
                     <div className="p-4">
                       <p className="text-sm text-white/80">{post.caption}</p>
@@ -113,13 +119,29 @@ function PostGrid({ posts }: { posts: ReturnType<typeof useApp>["posts"] }) {
 export function ProfilePage() {
   const { username } = useParams({ strict: false });
   const navigate = useNavigate();
-  const { posts } = useApp();
+  const { posts, savedPosts } = useApp();
+  const { currentUser } = useAuthContext();
   const [isFollowing, setIsFollowing] = useState(false);
 
-  const isOwnProfile = username === "me" || username === MOCK_USERS[0].username;
+  const isOwnProfile =
+    username === "me" ||
+    username === currentUser?.username ||
+    (!username && !!currentUser);
+
+  const fallbackUser =
+    MOCK_USERS.find((u) => u.username === username) ?? MOCK_USERS[0];
   const user = isOwnProfile
-    ? MOCK_USERS[0]
-    : (MOCK_USERS.find((u) => u.username === username) ?? MOCK_USERS[0]);
+    ? {
+        ...fallbackUser,
+        username: currentUser?.username ?? fallbackUser.username,
+        displayName: currentUser?.displayName ?? fallbackUser.displayName,
+        avatarUrl:
+          currentUser?.avatarUrl && currentUser.avatarUrl !== ""
+            ? currentUser.avatarUrl
+            : fallbackUser.avatarUrl,
+        bio: currentUser?.bio ?? fallbackUser.bio,
+      }
+    : fallbackUser;
 
   const userPosts = posts.filter((p) => {
     if (isOwnProfile) return true;
@@ -144,10 +166,13 @@ export function ProfilePage() {
             src={user.avatarUrl}
             alt={user.displayName}
             size="xl"
-            hasStory={MOCK_STORIES.some((s) => s.author.id === user.id)}
+            hasStory={MOCK_STORIES.some((s) => s.author.id === fallbackUser.id)}
             isViewed={false}
             onClick={() =>
-              navigate({ to: "/stories/$userId", params: { userId: user.id } })
+              navigate({
+                to: "/stories/$userId",
+                params: { userId: fallbackUser.id },
+              })
             }
           />
 
@@ -159,12 +184,12 @@ export function ProfilePage() {
                   <h1 className="text-xl font-bold text-white">
                     {user.username}
                   </h1>
-                  {user.isVerified && (
+                  {fallbackUser.isVerified && (
                     <div className="w-4.5 h-4.5 rounded-full gradient-bg flex items-center justify-center">
                       <span className="text-[9px] text-white font-bold">✓</span>
                     </div>
                   )}
-                  {user.isPrivate && (
+                  {fallbackUser.isPrivate && (
                     <Lock size={14} className="text-white/40" />
                   )}
                 </div>
@@ -219,14 +244,17 @@ export function ProfilePage() {
             {/* Stats */}
             <div className="flex gap-6">
               {[
-                { label: "posts", value: userPosts.length || user.postsCount },
+                {
+                  label: "posts",
+                  value: userPosts.length || fallbackUser.postsCount,
+                },
                 {
                   label: "followers",
                   value:
-                    user.followersCount +
-                    (isFollowing && !user.isFollowing ? 1 : 0),
+                    fallbackUser.followersCount +
+                    (isFollowing && !fallbackUser.isFollowing ? 1 : 0),
                 },
-                { label: "following", value: user.followingCount },
+                { label: "following", value: fallbackUser.followingCount },
               ].map((stat) => (
                 <button
                   type="button"
@@ -248,22 +276,21 @@ export function ProfilePage() {
           {user.bio && (
             <p className="text-sm text-white/80 leading-relaxed">{user.bio}</p>
           )}
-          {user.websiteUrl && (
+          {fallbackUser.websiteUrl && (
             <a
-              href={`https://${user.websiteUrl}`}
+              href={`https://${fallbackUser.websiteUrl}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1 mt-1"
             >
               <Globe size={12} />
-              {user.websiteUrl}
+              {fallbackUser.websiteUrl}
             </a>
           )}
         </div>
 
         {/* Story highlights */}
         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
-          {/* Add highlights button */}
           <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
             <button
               type="button"
@@ -306,6 +333,7 @@ export function ProfilePage() {
             { value: "posts", icon: <Grid size={18} /> },
             { value: "reels", icon: <Film size={18} /> },
             { value: "tagged", icon: <Tag size={18} /> },
+            { value: "saved", icon: <Bookmark size={18} /> },
           ].map((tab) => (
             <TabsTrigger
               key={tab.value}
@@ -331,6 +359,16 @@ export function ProfilePage() {
             <Tag size={40} className="mx-auto mb-3 opacity-50" />
             <p>No tagged posts</p>
           </div>
+        </TabsContent>
+        <TabsContent value="saved" className="mt-0">
+          {savedPosts.length === 0 ? (
+            <div className="text-center py-16 text-white/30">
+              <Bookmark size={40} className="mx-auto mb-3 opacity-50" />
+              <p>No saved posts yet</p>
+            </div>
+          ) : (
+            <PostGrid posts={savedPosts} />
+          )}
         </TabsContent>
       </Tabs>
     </div>

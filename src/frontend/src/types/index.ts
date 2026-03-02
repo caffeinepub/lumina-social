@@ -46,6 +46,7 @@ export interface MockStory {
   timestamp: Date;
   isViewed: boolean;
   duration: number;
+  musicTrack?: MusicTrack;
 }
 
 export interface MockReel {

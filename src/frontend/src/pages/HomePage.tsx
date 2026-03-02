@@ -1,3 +1,4 @@
+import { useAuthContext } from "@/components/auth/AuthContext";
 import { PostCard } from "@/components/feed/PostCard";
 import { StoryBar } from "@/components/feed/StoryBar";
 import { GlassAvatar } from "@/components/glass/GlassAvatar";
@@ -49,10 +50,19 @@ function SuggestedUser({
 
 export function HomePage() {
   const { posts } = useApp();
+  const { currentUser } = useAuthContext();
   const sortedPosts = [...posts].sort(
     (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
   );
   const suggestedUsers = MOCK_USERS.filter((u) => !u.isFollowing).slice(0, 5);
+
+  const profileUsername = currentUser?.username ?? MOCK_USERS[0].username;
+  const profileDisplayName =
+    currentUser?.displayName ?? MOCK_USERS[0].displayName;
+  const profileAvatarUrl =
+    currentUser?.avatarUrl && currentUser.avatarUrl !== ""
+      ? currentUser.avatarUrl
+      : MOCK_USERS[0].avatarUrl;
 
   return (
     <div className="max-w-[1200px] mx-auto flex min-h-screen">
@@ -82,21 +92,19 @@ export function HomePage() {
           {/* Profile summary */}
           <div className="flex items-center gap-3">
             <GlassAvatar
-              src={MOCK_USERS[0].avatarUrl}
-              alt={MOCK_USERS[0].displayName}
+              src={profileAvatarUrl}
+              alt={profileDisplayName}
               size="md"
             />
             <div>
               <Link
                 to="/profile/$username"
-                params={{ username: MOCK_USERS[0].username }}
+                params={{ username: profileUsername }}
                 className="text-sm font-semibold text-white hover:text-primary transition-colors"
               >
-                {MOCK_USERS[0].username}
+                {profileUsername}
               </Link>
-              <p className="text-xs text-white/40">
-                {MOCK_USERS[0].displayName}
-              </p>
+              <p className="text-xs text-white/40">{profileDisplayName}</p>
             </div>
             <GlassButton
               variant="ghost"

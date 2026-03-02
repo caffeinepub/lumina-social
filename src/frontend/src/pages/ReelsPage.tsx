@@ -1,6 +1,8 @@
-import { MOCK_REELS, formatCount } from "@/data/mockData";
+import { CommentDrawer } from "@/components/feed/CommentDrawer";
+import { ShareModal } from "@/components/feed/ShareModal";
+import { MOCK_REELS, MOCK_USERS, formatCount } from "@/data/mockData";
 import { cn } from "@/lib/utils";
-import type { MockReel } from "@/types";
+import type { MockComment, MockReel } from "@/types";
 import { Link } from "@tanstack/react-router";
 import {
   Bookmark,
@@ -19,6 +21,10 @@ function ReelCard({ reel }: { reel: MockReel }) {
   const [isSaved, setIsSaved] = useState(reel.isSaved);
   const [isMuted, setIsMuted] = useState(false);
   const [showLike, setShowLike] = useState(false);
+  const [isCommentDrawerOpen, setIsCommentDrawerOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [localComments, setLocalComments] = useState<MockComment[]>([]);
+  const [commentCountOffset, setCommentCountOffset] = useState(0);
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -26,6 +32,19 @@ function ReelCard({ reel }: { reel: MockReel }) {
       setShowLike(true);
       setTimeout(() => setShowLike(false), 800);
     }
+  };
+
+  const handleAddComment = (text: string) => {
+    const newComment: MockComment = {
+      id: `rc_${Date.now()}`,
+      author: MOCK_USERS[0],
+      text,
+      timestamp: new Date(),
+      likes: 0,
+      isLiked: false,
+    };
+    setLocalComments((prev) => [...prev, newComment]);
+    setCommentCountOffset((prev) => prev + 1);
   };
 
   return (
@@ -81,6 +100,7 @@ function ReelCard({ reel }: { reel: MockReel }) {
 
         <button
           type="button"
+          onClick={() => setIsCommentDrawerOpen(true)}
           className="flex flex-col items-center gap-1"
           aria-label="Comment on reel"
         >
@@ -88,12 +108,13 @@ function ReelCard({ reel }: { reel: MockReel }) {
             <MessageCircle size={22} className="text-white" />
           </div>
           <span className="text-xs text-white font-medium">
-            {formatCount(reel.comments)}
+            {formatCount(reel.comments + commentCountOffset)}
           </span>
         </button>
 
         <button
           type="button"
+          onClick={() => setIsShareModalOpen(true)}
           className="flex flex-col items-center gap-1"
           aria-label="Share reel"
         >
@@ -191,6 +212,23 @@ function ReelCard({ reel }: { reel: MockReel }) {
           <MoreHorizontal size={16} className="text-white" />
         </button>
       </div>
+
+      {/* Comment Drawer */}
+      <CommentDrawer
+        isOpen={isCommentDrawerOpen}
+        onClose={() => setIsCommentDrawerOpen(false)}
+        comments={localComments}
+        onAddComment={handleAddComment}
+        title="Comments"
+      />
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        postId={reel.id}
+        caption={reel.caption}
+      />
     </div>
   );
 }

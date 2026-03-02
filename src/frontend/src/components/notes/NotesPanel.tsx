@@ -46,8 +46,13 @@ function NoteDetail({ note, onClose }: NoteDetailProps) {
         audioRef.current = new Audio(note.musicTrack.previewUrl);
         audioRef.current.addEventListener("ended", () => setIsPlaying(false));
       }
-      audioRef.current.play().catch(() => setIsPlaying(false));
-      setIsPlaying(true);
+      audioRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {
+          setIsPlaying(false);
+          toast.error("Preview unavailable");
+        });
     }
   };
 

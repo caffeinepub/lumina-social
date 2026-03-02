@@ -1,19 +1,27 @@
 import { MOCK_NOTIFICATIONS, MOCK_POSTS } from "@/data/mockData";
-import type { MockNotification, MockPost } from "@/types";
+import type {
+  MockComment,
+  MockNotification,
+  MockPost,
+  MockUser,
+} from "@/types";
 import {
   type ReactNode,
   createContext,
   useCallback,
   useContext,
+  useMemo,
   useState,
 } from "react";
 
 interface AppContextType {
   posts: MockPost[];
+  savedPosts: MockPost[];
   notifications: MockNotification[];
   unreadNotificationCount: number;
   toggleLike: (postId: string) => void;
   toggleSave: (postId: string) => void;
+  addComment: (postId: string, text: string, author: MockUser) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
   deletePost: (postId: string) => void;
@@ -70,14 +78,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPosts((prev) => [post, ...prev]);
   }, []);
 
+  const addComment = useCallback(
+    (postId: string, text: string, author: MockUser) => {
+      const newComment: MockComment = {
+        id: `c_${Date.now()}`,
+        author,
+        text,
+        timestamp: new Date(),
+        likes: 0,
+        isLiked: false,
+      };
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId ? { ...p, comments: [...p.comments, newComment] } : p,
+        ),
+      );
+    },
+    [],
+  );
+
+  const savedPosts = useMemo(() => posts.filter((p) => p.isSaved), [posts]);
+
   return (
     <AppContext.Provider
       value={{
         posts,
+        savedPosts,
         notifications,
         unreadNotificationCount,
         toggleLike,
         toggleSave,
+        addComment,
         markNotificationRead,
         markAllNotificationsRead,
         deletePost,

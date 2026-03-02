@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, Eye, Heart, Share2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface StoryViewerProps {
@@ -22,6 +22,7 @@ export function StoryViewer({ userId }: StoryViewerProps) {
   const [isPaused, setIsPaused] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [floatingReaction, setFloatingReaction] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const currentStory = userStories[currentIndex];
 
@@ -46,6 +47,36 @@ export function StoryViewer({ userId }: StoryViewerProps) {
       setProgress(0);
     }
   }, [currentIndex]);
+
+  // Handle music playback when story changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: currentIndex triggers the effect; currentStory is derived from it
+  useEffect(() => {
+    // Stop previous audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    // Start new audio if story has a music track with a preview URL
+    if (currentStory?.musicTrack?.previewUrl) {
+      const audio = new Audio(currentStory.musicTrack.previewUrl);
+      audio.loop = true;
+      audioRef.current = audio;
+      audio.play().catch(() => {
+        // Silently swallow autoplay errors (browser policy, CORS, etc.)
+      });
+    }
+  }, [currentIndex, currentStory]);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: currentStory is intentionally excluded
   useEffect(() => {
@@ -220,8 +251,19 @@ export function StoryViewer({ userId }: StoryViewerProps) {
           aria-label="Next story"
         />
 
-        {/* Bottom: reply + reaction bar */}
+        {/* Bottom: music bar + reply + reaction bar */}
         <div className="absolute bottom-6 left-4 right-4 z-20 space-y-2">
+          {/* Music track mini-bar */}
+          {currentStory.musicTrack && (
+            <div className="flex items-center gap-2 glass rounded-full px-3 py-1.5">
+              <div className="w-4 h-4 rounded-full gradient-bg animate-spin flex-shrink-0" />
+              <span className="text-xs text-white truncate max-w-[140px]">
+                {currentStory.musicTrack.title} —{" "}
+                {currentStory.musicTrack.artist}
+              </span>
+            </div>
+          )}
+
           {/* Emoji reactions */}
           <div className="flex justify-center gap-3">
             {REACTIONS.map((emoji) => (

@@ -131,8 +131,12 @@ export function MusicSearchPicker({ value, onChange }: MusicSearchPickerProps) {
         audioRef.current = new Audio(value.previewUrl);
         audioRef.current.addEventListener("ended", () => setIsPlaying(false));
       }
-      audioRef.current.play().catch(() => setIsPlaying(false));
-      setIsPlaying(true);
+      audioRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {
+          setIsPlaying(false);
+        });
     }
   };
 

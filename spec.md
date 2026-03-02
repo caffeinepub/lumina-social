@@ -1,58 +1,53 @@
 # Lumina Social
 
 ## Current State
-- Full Instagram-like social media app with glassmorphism UI
-- Pages: Home Feed, Reels, Explore, Messages (with NotesPanel), Notifications, Profile, Settings, Admin, Login, Signup
-- Mock data uses DiceBear SVG avatars (abstract/cartoon) and CSS gradient rectangles for post/reel images
-- Notes panel has a layout bug: `mt-12` pushes note bubbles up into a fixed offset that clips or overlaps when the panel is small
-- Notes music field is a plain text input with no actual playback
-- Auth is fully fake (no persistence, any credentials work)
-- Login/Signup pages have "Google" and "Apple" buttons that show a toast saying "coming soon"
-- Reels page uses CSS gradient backgrounds, no real video thumbnails
-- Post images are CSS gradients, no real photos
+- Full Instagram-like social media app with glass liquid UI
+- Auth: localStorage-based signup/login; currentUser stored as StoredUser
+- Home feed: PostCard with like/save/comment toggle; comment modal incomplete (no add-comment input)
+- ReelsPage: snap-scroll vertical reel cards with like/save/share buttons (non-functional comment & share overlays)
+- Stories: StoryViewer with gradient backgrounds, emoji reactions, music field exists but only text input (no real music in story)
+- Notes: NotesPanel with MusicSearchPicker using iTunes API; music play has CORS issue (audio-ssl.itunes.apple.com blocked)
+- Profile: ProfilePage always shows MOCK_USERS[0] as own profile regardless of who is logged in
+- Sidebar / home profile summary: hardcoded to MOCK_USERS[0]
+- Post sharing: share button just shows toast "Link copied"
+- Post saving: works but no dedicated saved-posts view anywhere
 
 ## Requested Changes (Diff)
 
 ### Add
-- **Real photo avatars**: Replace all DiceBear SVG avatars with stable `i.pravatar.cc` photo URLs (consistent per user via seed ID) so every user has a real face photo
-- **Real post images**: Replace CSS gradient `imageUrl` strings in MOCK_POSTS with `picsum.photos` stable image URLs (e.g. `https://picsum.photos/seed/post1/600/600`) so the feed shows real photos
-- **Real reel thumbnails**: Replace CSS gradient `gradient` field in MOCK_REELS with `picsum.photos` vertical image URLs (e.g. `https://picsum.photos/seed/reel1/420/748`) for realistic reel previews
-- **Music player in Notes**: Replace the plain text "Add music track" input with a full inline music search UI:
-  - Search field that queries iTunes Search API (`https://itunes.apple.com/search?term=...&media=music&limit=8&callback=`)
-  - Results list showing track artwork, title, artist
-  - Tap to select a track; selected track shows artwork + name
-  - Play/pause button that plays the 30-second `previewUrl` from iTunes API using HTML5 `<audio>`
-  - Music player bar shows in NoteDetail if the note has a musicTrack (stored as JSON: `{id, title, artist, artworkUrl, previewUrl}`)
-- **Music player in CreatePostModal**: Same music search + preview UI for adding music to posts
-- **Persistent auth with localStorage**: Login/Signup create a real session stored in `localStorage`:
-  - Signup: save `{username, email, displayName, bio, avatarUrl}` under `lumina_user` key; redirect to home
-  - Login: validate against stored `lumina_user`; if not found, show error "No account found, please sign up"
-  - Auth state reads from localStorage on mount so session persists across page reloads
-  - Add "Continue with Internet Identity" button (ICP's decentralized login) that calls `useInternetIdentity` hook already present in the codebase
-- **Notes panel fix**: Rework the notes row layout so speech bubbles render correctly without fixed `mt-12` hacks; use a flex column per note item with consistent spacing; add `overflow-x-auto` scroll on the row; ensure the "Your note" bubble preview doesn't overflow the container
-- **Reels linked from Feed**: Each post's media area and a "Watch Reel" chip (if the post has a reel) links to `/reels` page; the Reels nav item in the sidebar already links to `/reels`
+1. **Working comment system** on posts: full comments drawer/modal with ability to type and submit new comments; comments list shows all comments with like-per-comment button; comment count updates live
+2. **Working comment system on reels**: tap comment icon on reel opens bottom drawer with same comment UI
+3. **Share modal for posts and reels**: tapping Share opens a modal with "Copy link", "Share to message" (picks a conversation), and "Share to story" options
+4. **Save confirmation + Saved Posts section** on ProfilePage: saved tab shows all saved posts in a grid
+5. **Story with working music**: CreateStoryModal replaces text music input with MusicSearchPicker; story stores full MusicTrack object; StoryViewer shows the music bar and actually plays preview audio when story is open
+6. **Story detail enrichment**: StoryViewer shows music mini-player when story has musicTrack; music auto-plays and stops when story advances
+7. **Own account in profile/home sidebar**: ProfilePage "isOwnProfile" logic uses currentUser.username from AuthContext (not hardcoded MOCK_USERS[0]); home sidebar also uses currentUser
+8. **Note music playback fix**: replace direct apple CDN previewUrl with a CORS proxy or use an HTML5 `<audio>` element with `crossOrigin="anonymous"`; also suppress play errors gracefully. Actually: the iTunes preview URLs are HTTPS and should work with fetch/XHR but may block autoplay; ensure audio.play() is triggered by user click event and handle the promise properly
+9. **Post share detail**: Share modal lets you search/select a conversation from MOCK_CONVERSATIONS to "send" the post (shows toast confirmation), and copy link option
+10. **Reels functional interactions**: like count updates, save toggles, comment drawer opens, share modal opens
 
 ### Modify
-- `mockData.ts`: Update all `avatarUrl` fields to use `https://i.pravatar.cc/150?img=N` (N = 1–70) with consistent mapping per user; update all `imageUrl` in MOCK_POSTS to use `https://picsum.photos/seed/postN/600/600`; update `gradient` in MOCK_REELS to use `https://picsum.photos/seed/reelN/420/748`
-- `NotesPanel.tsx`: Fix layout, add music player integration; store selected music as structured object instead of plain string
-- `CreateNoteModal` inside NotesPanel: music field becomes MusicSearchPicker component
-- `LoginPage.tsx` / `SignupPage.tsx`: Wire to localStorage auth; add Internet Identity button
-- `AuthContext`: Read/write from localStorage; expose `currentUser` profile; fix so login state persists on reload
-- `MockNote.musicTrack` type: change from `string | undefined` to `MusicTrack | undefined` where `MusicTrack = {id: string; title: string; artist: string; artworkUrl: string; previewUrl: string}`
-- `types/index.ts`: Add `MusicTrack` interface
+1. **AppContext**: add `addComment(postId, text)` method; add `savedPosts` computed list
+2. **PostCard**: wire comment input at bottom of comments expansion; add "Add a comment..." input that submits on Enter or button click
+3. **ReelsPage**: wire up comment button to open a CommentDrawer; wire share button to open ShareModal; ensure like/save state properly updates
+4. **ProfilePage**: replace `isOwnProfile` check with `currentUser?.username === username || username === "me"`; use `currentUser` for avatar/name in own-profile header; add "Saved" tab (bookmark icon) showing saved posts
+5. **HomePage sidebar**: replace hardcoded `MOCK_USERS[0]` with `currentUser` from AuthContext for the profile summary card
+6. **CreateStoryModal**: replace plain text music input with `<MusicSearchPicker>` component; store selected MusicTrack in story (add `musicTrack?: MusicTrack` to MockStory type)
+7. **StoryViewer**: if `currentStory.musicTrack` exists, show a mini music bar at top (below progress bars) and auto-play the preview; pause audio on story advance/close
+8. **MusicSearchPicker**: improve play error handling; ensure audio element is created inside a click handler
 
 ### Remove
-- All `mt-12` hack in NotesPanel notes row
-- DiceBear base URL constant and references in mockData
-- CSS gradient strings used as `imageUrl` for posts (replaced by picsum URLs)
+- Nothing removed
 
 ## Implementation Plan
-1. Update `types/index.ts` — add `MusicTrack` interface; update `MockNote.musicTrack` to `MusicTrack | undefined`
-2. Update `mockData.ts` — replace all avatarUrl with pravatar.cc photo URLs, post imageUrls with picsum URLs, reel gradient with picsum URLs, update note musicTrack fields to MusicTrack objects
-3. Create `src/components/music/MusicSearchPicker.tsx` — iTunes JSONP/fetch search, results list, select + play preview
-4. Fix `NotesPanel.tsx` — rework layout, integrate MusicSearchPicker, update NoteDetail to show music player bar with play/pause
-5. Update `CreatePostModal.tsx` — add MusicSearchPicker for post music
-6. Update `AuthContext.tsx` — localStorage persistence, expose currentUser
-7. Update `LoginPage.tsx` — real validation against localStorage, Internet Identity button
-8. Update `SignupPage.tsx` — save to localStorage, redirect to home
-9. Validate build (typecheck + lint)
+1. Update `types/index.ts`: add `musicTrack?: MusicTrack` to `MockStory`; no other type changes needed
+2. Update `AppContext.tsx`: add `addComment(postId: string, text: string)` and expose `savedPosts` (posts where isSaved)
+3. Create `components/feed/CommentDrawer.tsx`: reusable comment list + input sheet (works for both posts and reels)
+4. Create `components/feed/ShareModal.tsx`: share options modal (copy link, send to conversation)  
+5. Update `PostCard.tsx`: wire comment input inline (expand comment section with add-comment input); wire share button to ShareModal
+6. Update `ReelsPage.tsx`: wire comment button to CommentDrawer; wire share button to ShareModal; fix like/save state
+7. Update `ProfilePage.tsx`: use AuthContext currentUser for own profile detection; add Saved tab
+8. Update `HomePage.tsx` sidebar: use currentUser from AuthContext
+9. Update `CreateStoryModal.tsx`: replace music text field with MusicSearchPicker
+10. Update `StoryViewer.tsx`: add audio playback for story musicTrack; auto-play/stop on advance
+11. Update `NotesPanel.tsx`/`MusicSearchPicker.tsx`: improve audio error handling for CORS/autoplay
