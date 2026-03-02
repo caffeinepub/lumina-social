@@ -1,6 +1,11 @@
-import { MOCK_NOTIFICATIONS, MOCK_POSTS } from "@/data/mockData";
+import {
+  MOCK_MESSAGES_BY_CONV,
+  MOCK_NOTIFICATIONS,
+  MOCK_POSTS,
+} from "@/data/mockData";
 import type {
   MockComment,
+  MockMessage,
   MockNotification,
   MockPost,
   MockUser,
@@ -19,6 +24,7 @@ interface AppContextType {
   savedPosts: MockPost[];
   notifications: MockNotification[];
   unreadNotificationCount: number;
+  messages: Record<string, MockMessage[]>;
   toggleLike: (postId: string) => void;
   toggleSave: (postId: string) => void;
   addComment: (postId: string, text: string, author: MockUser) => void;
@@ -26,6 +32,16 @@ interface AppContextType {
   markAllNotificationsRead: () => void;
   deletePost: (postId: string) => void;
   addPost: (post: MockPost) => void;
+  sendMessage: (convId: string, msg: MockMessage) => void;
+  sendSharedPost: (
+    convId: string,
+    post: {
+      id: string;
+      imageUrl: string;
+      caption: string;
+      authorUsername: string;
+    },
+  ) => void;
   isCreateOpen: boolean;
   setIsCreateOpen: (open: boolean) => void;
 }
@@ -36,6 +52,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [posts, setPosts] = useState<MockPost[]>(MOCK_POSTS);
   const [notifications, setNotifications] =
     useState<MockNotification[]>(MOCK_NOTIFICATIONS);
+  const [messages, setMessages] = useState<Record<string, MockMessage[]>>(
+    MOCK_MESSAGES_BY_CONV,
+  );
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const unreadNotificationCount = notifications.filter((n) => !n.isRead).length;
@@ -97,6 +116,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const sendMessage = useCallback((convId: string, msg: MockMessage) => {
+    setMessages((prev) => ({
+      ...prev,
+      [convId]: [...(prev[convId] ?? []), msg],
+    }));
+  }, []);
+
+  const sendSharedPost = useCallback(
+    (
+      convId: string,
+      post: {
+        id: string;
+        imageUrl: string;
+        caption: string;
+        authorUsername: string;
+      },
+    ) => {
+      const msg: MockMessage = {
+        id: `shared_${Date.now()}`,
+        senderId: "me",
+        timestamp: new Date(),
+        isRead: false,
+        type: "shared_post",
+        sharedPost: post,
+      };
+      setMessages((prev) => ({
+        ...prev,
+        [convId]: [...(prev[convId] ?? []), msg],
+      }));
+    },
+    [],
+  );
+
   const savedPosts = useMemo(() => posts.filter((p) => p.isSaved), [posts]);
 
   return (
@@ -106,6 +158,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         savedPosts,
         notifications,
         unreadNotificationCount,
+        messages,
         toggleLike,
         toggleSave,
         addComment,
@@ -113,6 +166,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         markAllNotificationsRead,
         deletePost,
         addPost,
+        sendMessage,
+        sendSharedPost,
         isCreateOpen,
         setIsCreateOpen,
       }}

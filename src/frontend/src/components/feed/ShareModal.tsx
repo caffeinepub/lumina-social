@@ -1,3 +1,4 @@
+import { useApp } from "@/context/AppContext";
 import { MOCK_CONVERSATIONS } from "@/data/mockData";
 import { Link2, Share2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -15,8 +16,11 @@ export function ShareModal({
   isOpen,
   onClose,
   postId,
+  postImageUrl,
   caption,
 }: ShareModalProps) {
+  const { sendSharedPost } = useApp();
+
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(
@@ -34,7 +38,13 @@ export function ShareModal({
     onClose();
   };
 
-  const handleSendToConversation = (name: string) => {
+  const handleSendToConversation = (convId: string, name: string) => {
+    sendSharedPost(convId, {
+      id: postId,
+      imageUrl: postImageUrl ?? "",
+      caption: caption ?? "",
+      authorUsername: "",
+    });
     toast.success(`Sent to ${name}!`);
     onClose();
   };
@@ -129,7 +139,7 @@ export function ShareModal({
                       <button
                         key={conv.id}
                         type="button"
-                        onClick={() => handleSendToConversation(name)}
+                        onClick={() => handleSendToConversation(conv.id, name)}
                         className="flex items-center gap-3 w-full px-3 py-2 rounded-xl hover:bg-white/8 transition-colors"
                       >
                         <img

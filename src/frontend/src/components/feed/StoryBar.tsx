@@ -7,7 +7,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-const ME = MOCK_USERS[0];
+const ME = MOCK_USERS[1]; // aurora.lens is the default mock logged-in user
 
 export function StoryBar() {
   const navigate = useNavigate();

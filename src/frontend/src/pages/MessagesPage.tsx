@@ -3,9 +3,9 @@ import { GlassButton } from "@/components/glass/GlassButton";
 import { GlassInput } from "@/components/glass/GlassInput";
 import { NotesPanel } from "@/components/notes/NotesPanel";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useApp } from "@/context/AppContext";
 import {
   MOCK_CONVERSATIONS,
-  MOCK_MESSAGES_BY_CONV,
   MOCK_USERS,
   formatRelativeTime,
 } from "@/data/mockData";
@@ -13,11 +13,13 @@ import { cn } from "@/lib/utils";
 import type { MockConversation, MockMessage } from "@/types";
 import {
   ArrowLeft,
+  ExternalLink,
   Image,
   Info,
   MessageCircle,
   Mic,
   Phone,
+  Pin,
   Search,
   Send,
   Smile,
@@ -28,20 +30,21 @@ import { useEffect, useRef, useState } from "react";
 
 const ME_ID = "me";
 
+const LOGGED_IN_USER_ID = "1"; // aurora.lens is the default logged-in mock user
+
 function getConvName(conv: MockConversation): string {
   if (conv.isGroup) return conv.groupName ?? "Group";
   return (
-    conv.participants.find((p) => p.id !== MOCK_USERS[0].id)?.username ??
+    conv.participants.find((p) => p.id !== LOGGED_IN_USER_ID)?.username ??
+    conv.participants[0]?.username ??
     "Unknown"
   );
 }
 
 function getConvAvatar(conv: MockConversation): string {
-  if (conv.isGroup) return MOCK_USERS[1].avatarUrl;
-  return (
-    conv.participants.find((p) => p.id !== MOCK_USERS[0].id)?.avatarUrl ??
-    MOCK_USERS[0].avatarUrl
-  );
+  if (conv.isGroup) return MOCK_USERS[2].avatarUrl;
+  const other = conv.participants.find((p) => p.id !== LOGGED_IN_USER_ID);
+  return other?.avatarUrl ?? MOCK_USERS[1].avatarUrl;
 }
 
 function TypingIndicator() {
@@ -58,12 +61,56 @@ function TypingIndicator() {
   );
 }
 
+function SharedPostBubble({
+  msg,
+  isMe,
+}: {
+  msg: MockMessage;
+  isMe: boolean;
+}) {
+  if (!msg.sharedPost) return null;
+  const { imageUrl, authorUsername, caption } = msg.sharedPost;
+
+  return (
+    <div
+      className={cn(
+        "max-w-[70%] rounded-2xl overflow-hidden glass text-white/90",
+        isMe ? "rounded-br-sm" : "rounded-bl-sm",
+      )}
+    >
+      <div className="flex items-center gap-3 p-3">
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt="Shared post"
+            className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+          />
+        )}
+        <div className="flex-1 min-w-0">
+          {authorUsername && (
+            <p className="text-[10px] text-white/50 mb-0.5">
+              @{authorUsername}
+            </p>
+          )}
+          <p className="text-xs text-white/80 truncate leading-snug">
+            {caption || "Shared a post"}
+          </p>
+          <p className="text-[10px] text-primary mt-1 flex items-center gap-1">
+            <ExternalLink size={10} />
+            View Post
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function MessagesPage() {
   const [selectedConv, setSelectedConv] = useState<MockConversation | null>(
     null,
   );
   const [messageText, setMessageText] = useState("");
-  const [messages, setMessages] = useState(MOCK_MESSAGES_BY_CONV);
+  const { messages, sendMessage } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -90,23 +137,36 @@ export function MessagesPage() {
       isRead: false,
       type: "text",
     };
-    setMessages((prev) => ({
-      ...prev,
-      [selectedConv.id]: [...(prev[selectedConv.id] ?? []), newMsg],
-    }));
+    sendMessage(selectedConv.id, newMsg);
     setMessageText("");
 
     // Simulate typing response
     setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
-      const responses = [
+      const isChocoChat = selectedConv.id === "conv_choco";
+      const chocoReplies = [
+        "okay but why",
+        "no you're projecting",
+        "I was literally just thinking about this",
+        "existing is exhausting but go on",
+        "that's very you of you",
+        "okay and? 😐",
+        "I felt that",
+        "bro same honestly",
+        "you need sleep",
+        "this is sending me",
+        "I'm not surprised but continue",
+        "lowkey valid though",
+      ];
+      const genericReplies = [
         "That's interesting! 🔥",
         "Love that perspective ✨",
         "Totally agree! 🙌",
         "Let's catch up soon 💫",
         "Amazing work as always 🎨",
       ];
+      const responses = isChocoChat ? chocoReplies : genericReplies;
       const reply: MockMessage = {
         id: `msg_reply_${Date.now()}`,
         senderId: selectedConv.participants[0]?.id ?? "other",
@@ -115,10 +175,7 @@ export function MessagesPage() {
         isRead: false,
         type: "text",
       };
-      setMessages((prev) => ({
-        ...prev,
-        [selectedConv.id]: [...(prev[selectedConv.id] ?? []), reply],
-      }));
+      sendMessage(selectedConv.id, reply);
     }, 2000);
   };
 
@@ -163,10 +220,13 @@ export function MessagesPage() {
                   <div className="flex items-center justify-between">
                     <span
                       className={cn(
-                        "text-sm font-medium truncate",
+                        "text-sm font-medium truncate flex items-center gap-1",
                         conv.unreadCount > 0 ? "text-white" : "text-white/80",
                       )}
                     >
+                      {conv.isPinned && (
+                        <Pin size={10} className="text-primary flex-shrink-0" />
+                      )}
                       {name}
                     </span>
                     <span className="text-xs text-white/30 ml-2 flex-shrink-0">
@@ -192,9 +252,9 @@ export function MessagesPage() {
   );
 
   const ChatView = selectedConv && (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* Chat header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/8 glass-heavy">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/8 glass-heavy flex-shrink-0">
         <button
           type="button"
           onClick={() => setSelectedConv(null)}
@@ -241,7 +301,7 @@ export function MessagesPage() {
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 px-4 py-4">
+      <ScrollArea className="flex-1 min-h-0 px-4 py-4">
         <div className="space-y-3">
           {currentMessages.map((msg, i) => {
             const isMe = msg.senderId === ME_ID;
@@ -271,22 +331,27 @@ export function MessagesPage() {
                     )}
                   </div>
                 )}
-                <div
-                  className={cn(
-                    "max-w-[70%] px-4 py-2.5 rounded-2xl text-sm",
-                    isMe
-                      ? "gradient-bg text-white rounded-br-sm"
-                      : "glass text-white/90 rounded-bl-sm",
-                  )}
-                >
-                  {msg.text}
-                  <p className="text-[10px] mt-0.5 opacity-50">
-                    {msg.timestamp.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
+
+                {msg.type === "shared_post" ? (
+                  <SharedPostBubble msg={msg} isMe={isMe} />
+                ) : (
+                  <div
+                    className={cn(
+                      "max-w-[70%] px-4 py-2.5 rounded-2xl text-sm",
+                      isMe
+                        ? "gradient-bg text-white rounded-br-sm"
+                        : "glass text-white/90 rounded-bl-sm",
+                    )}
+                  >
+                    {msg.text}
+                    <p className="text-[10px] mt-0.5 opacity-50">
+                      {msg.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                )}
               </motion.div>
             );
           })}
@@ -310,7 +375,7 @@ export function MessagesPage() {
       </ScrollArea>
 
       {/* Input bar */}
-      <div className="px-4 py-3 border-t border-white/8 glass-heavy">
+      <div className="px-4 py-3 border-t border-white/8 glass-heavy flex-shrink-0">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -361,11 +426,11 @@ export function MessagesPage() {
   );
 
   return (
-    <div className="h-screen flex">
+    <div className="flex fixed inset-0 lg:left-[260px]">
       {/* Conversation list */}
       <div
         className={cn(
-          "w-full lg:w-[340px] flex-shrink-0 border-r border-white/8 glass-heavy",
+          "w-full lg:w-[340px] flex-shrink-0 border-r border-white/8 glass-heavy overflow-hidden",
           selectedConv ? "hidden lg:flex lg:flex-col" : "flex flex-col",
         )}
       >
@@ -375,7 +440,7 @@ export function MessagesPage() {
       {/* Chat area */}
       <div
         className={cn(
-          "flex-1",
+          "flex-1 overflow-hidden",
           selectedConv
             ? "flex flex-col"
             : "hidden lg:flex lg:items-center lg:justify-center",

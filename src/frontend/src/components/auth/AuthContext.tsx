@@ -18,6 +18,7 @@ interface AuthContextType {
   login: (email: string, password: string) => boolean;
   signup: (data: StoredUser) => void;
   logout: () => void;
+  updateUser: (partial: Partial<StoredUser>) => void;
   principalId: string | null;
 }
 
@@ -60,6 +61,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCurrentUser(null);
   }
 
+  function updateUser(partial: Partial<StoredUser>): void {
+    setCurrentUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...partial };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -70,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         signup,
         logout,
+        updateUser,
         principalId: null,
       }}
     >

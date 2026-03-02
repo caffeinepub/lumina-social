@@ -6,24 +6,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApp } from "@/context/AppContext";
 import {
   MOCK_HIGHLIGHTS,
+  MOCK_REELS,
   MOCK_STORIES,
   MOCK_USERS,
   formatCount,
 } from "@/data/mockData";
+import type { MockReel } from "@/types";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
   Bookmark,
   Film,
   Globe,
   Grid,
+  Heart,
   Lock,
   MessageCircle,
   MoreHorizontal,
+  Play,
   Plus,
   Settings,
   Tag,
   UserCheck,
   UserPlus,
+  X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
@@ -45,29 +50,40 @@ function PostGrid({ posts }: { posts: ReturnType<typeof useApp>["posts"] }) {
     <>
       <div className="grid grid-cols-3 gap-0.5">
         {posts.map((post, i) => (
-          <motion.div
+          <motion.button
             key={post.id}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.03 }}
             onClick={() => setSelectedPost(post.id)}
-            onKeyDown={(e) => e.key === "Enter" && setSelectedPost(post.id)}
+            type="button"
             className="aspect-square overflow-hidden cursor-pointer group relative bg-black/20"
             aria-label="View post"
           >
-            <img
-              src={post.imageUrl}
-              alt={post.caption}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
+            {post.mediaType === "video" ? (
+              <video
+                src={post.imageUrl}
+                className="w-full h-full object-cover"
+                muted
+                playsInline
+              >
+                <track kind="captions" />
+              </video>
+            ) : (
+              <img
+                src={post.imageUrl}
+                alt={post.caption}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            )}
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-200 flex items-center justify-center">
               <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-4 text-white text-sm font-semibold">
                 <span>♥ {formatCount(post.likes)}</span>
                 <span>💬 {post.comments.length}</span>
               </div>
             </div>
-          </motion.div>
+          </motion.button>
         ))}
       </div>
 
@@ -93,11 +109,24 @@ function PostGrid({ posts }: { posts: ReturnType<typeof useApp>["posts"] }) {
                 if (!post) return null;
                 return (
                   <>
-                    <img
-                      src={post.imageUrl}
-                      alt={post.caption}
-                      className="w-full aspect-square object-cover"
-                    />
+                    {post.mediaType === "video" ? (
+                      <video
+                        src={post.imageUrl}
+                        className="w-full aspect-square object-cover"
+                        controls
+                        autoPlay
+                        loop
+                        playsInline
+                      >
+                        <track kind="captions" />
+                      </video>
+                    ) : (
+                      <img
+                        src={post.imageUrl}
+                        alt={post.caption}
+                        className="w-full aspect-square object-cover"
+                      />
+                    )}
                     <div className="p-4">
                       <p className="text-sm text-white/80">{post.caption}</p>
                       <p className="text-xs text-white/40 mt-2">
@@ -110,6 +139,148 @@ function PostGrid({ posts }: { posts: ReturnType<typeof useApp>["posts"] }) {
               })()}
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function ReelOverlay({
+  reel,
+  onClose,
+}: {
+  reel: MockReel;
+  onClose: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="relative w-full max-w-[360px] rounded-3xl overflow-hidden bg-black"
+        onClick={(e) => e.stopPropagation()}
+        style={{ aspectRatio: "9/16", maxHeight: "85vh" }}
+      >
+        {reel.videoUrl ? (
+          <video
+            src={reel.videoUrl}
+            poster={reel.thumbnailUrl}
+            className="w-full h-full object-cover"
+            autoPlay
+            loop
+            playsInline
+            controls={false}
+          >
+            <track kind="captions" />
+          </video>
+        ) : (
+          <img
+            src={reel.thumbnailUrl}
+            alt={reel.caption}
+            className="w-full h-full object-cover"
+          />
+        )}
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/80 pointer-events-none" />
+
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors z-10"
+          aria-label="Close reel"
+        >
+          <X size={18} />
+        </button>
+
+        {/* Bottom info */}
+        <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
+          <div className="flex items-center gap-2 mb-2">
+            <img
+              src={reel.author.avatarUrl}
+              alt={reel.author.username}
+              className="w-7 h-7 rounded-full object-cover ring-2 ring-white/50"
+            />
+            <span className="text-sm font-semibold text-white">
+              @{reel.author.username}
+            </span>
+          </div>
+          <p className="text-sm text-white/85 leading-snug mb-3">
+            {reel.caption}
+          </p>
+          <div className="flex items-center gap-5 text-white/80">
+            <div className="flex items-center gap-1.5 text-sm">
+              <Heart size={16} />
+              <span>{formatCount(reel.likes)}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-sm">
+              <MessageCircle size={16} />
+              <span>{formatCount(reel.comments)}</span>
+            </div>
+            <div className="text-xs text-white/50">
+              {formatCount(reel.views)} views
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function ReelGrid({ reels }: { reels: MockReel[] }) {
+  const [selectedReel, setSelectedReel] = useState<MockReel | null>(null);
+
+  return (
+    <>
+      <div className="grid grid-cols-3 gap-0.5">
+        {reels.map((reel, i) => (
+          <motion.button
+            key={reel.id}
+            type="button"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.04 }}
+            onClick={() => setSelectedReel(reel)}
+            aria-label="View reel"
+            className="aspect-square overflow-hidden cursor-pointer group relative bg-black/20"
+          >
+            <img
+              src={reel.thumbnailUrl}
+              alt={reel.caption}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            {/* Play icon overlay */}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-200 flex items-center justify-center">
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-1 text-white">
+                <Play size={28} className="fill-white drop-shadow" />
+                <span className="text-xs font-medium drop-shadow">
+                  {formatCount(reel.views)}
+                </span>
+              </div>
+            </div>
+            {/* Duration badge */}
+            <div className="absolute bottom-1.5 right-1.5 text-[10px] text-white/80 bg-black/50 rounded px-1 py-0.5 font-medium">
+              {reel.duration}
+            </div>
+          </motion.button>
+        ))}
+      </div>
+
+      <AnimatePresence>
+        {selectedReel && (
+          <ReelOverlay
+            reel={selectedReel}
+            onClose={() => setSelectedReel(null)}
+          />
         )}
       </AnimatePresence>
     </>
@@ -129,7 +300,7 @@ export function ProfilePage() {
     (!username && !!currentUser);
 
   const fallbackUser =
-    MOCK_USERS.find((u) => u.username === username) ?? MOCK_USERS[0];
+    MOCK_USERS.find((u) => u.username === username) ?? MOCK_USERS[2];
   const user = isOwnProfile
     ? {
         ...fallbackUser,
@@ -147,6 +318,8 @@ export function ProfilePage() {
     if (isOwnProfile) return true;
     return p.author.username === username;
   });
+
+  const totalLikes = userPosts.reduce((sum, p) => sum + p.likes, 0);
 
   const handleFollow = () => {
     setIsFollowing(!isFollowing);
@@ -289,6 +462,31 @@ export function ProfilePage() {
           )}
         </div>
 
+        {/* Own profile stat strip */}
+        {isOwnProfile && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-4 glass rounded-xl px-4 py-2.5 mb-4"
+          >
+            <div className="flex items-center gap-1.5 text-sm">
+              <Heart size={14} className="text-secondary" />
+              <span className="text-white/60 text-xs">Total Likes:</span>
+              <span className="text-white font-semibold text-xs">
+                {formatCount(totalLikes)}
+              </span>
+            </div>
+            <div className="w-px h-4 bg-white/10" />
+            <div className="flex items-center gap-1.5 text-sm">
+              <Grid size={14} className="text-primary" />
+              <span className="text-white/60 text-xs">Total Posts:</span>
+              <span className="text-white font-semibold text-xs">
+                {userPosts.length}
+              </span>
+            </div>
+          </motion.div>
+        )}
+
         {/* Story highlights */}
         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
           <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
@@ -349,10 +547,7 @@ export function ProfilePage() {
           <PostGrid posts={userPosts} />
         </TabsContent>
         <TabsContent value="reels" className="mt-0">
-          <div className="text-center py-16 text-white/30">
-            <Film size={40} className="mx-auto mb-3 opacity-50" />
-            <p>No reels yet</p>
-          </div>
+          <ReelGrid reels={MOCK_REELS} />
         </TabsContent>
         <TabsContent value="tagged" className="mt-0">
           <div className="text-center py-16 text-white/30">

@@ -56,13 +56,13 @@ export function HomePage() {
   );
   const suggestedUsers = MOCK_USERS.filter((u) => !u.isFollowing).slice(0, 5);
 
-  const profileUsername = currentUser?.username ?? MOCK_USERS[0].username;
+  const profileUsername = currentUser?.username ?? MOCK_USERS[1].username;
   const profileDisplayName =
-    currentUser?.displayName ?? MOCK_USERS[0].displayName;
+    currentUser?.displayName ?? MOCK_USERS[1].displayName;
   const profileAvatarUrl =
     currentUser?.avatarUrl && currentUser.avatarUrl !== ""
       ? currentUser.avatarUrl
-      : MOCK_USERS[0].avatarUrl;
+      : MOCK_USERS[1].avatarUrl;
 
   return (
     <div className="max-w-[1200px] mx-auto flex min-h-screen">

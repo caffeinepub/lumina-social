@@ -1,4 +1,5 @@
 import { Gender } from "@/backend.d";
+import { useAuthContext } from "@/components/auth/AuthContext";
 import { GlassAvatar } from "@/components/glass/GlassAvatar";
 import { GlassButton } from "@/components/glass/GlassButton";
 import { GlassCard } from "@/components/glass/GlassCard";
@@ -14,25 +15,62 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { MOCK_USERS } from "@/data/mockData";
 import { useSaveProfile } from "@/hooks/useBackend";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, AtSign, Camera, FileText, Globe, User } from "lucide-react";
+import { ArrowLeft, AtSign, Camera, Globe, User } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 export function EditProfilePage() {
-  const user = MOCK_USERS[0];
-  const [displayName, setDisplayName] = useState(user.displayName);
-  const [username, setUsername] = useState(user.username);
-  const [bio, setBio] = useState(user.bio);
-  const [website, setWebsite] = useState(user.websiteUrl);
-  const [isPrivate, setIsPrivate] = useState(user.isPrivate);
+  const { currentUser, updateUser } = useAuthContext();
+  const fallback = {
+    displayName: "",
+    username: "",
+    bio: "",
+    avatarUrl: "",
+    websiteUrl: "",
+    isPrivate: false,
+  };
+
+  const [displayName, setDisplayName] = useState(
+    currentUser?.displayName ?? fallback.displayName,
+  );
+  const [username, setUsername] = useState(
+    currentUser?.username ?? fallback.username,
+  );
+  const [bio, setBio] = useState(currentUser?.bio ?? fallback.bio);
+  const [website, setWebsite] = useState(
+    currentUser?.avatarUrl ? "" : fallback.websiteUrl,
+  );
+  const [isPrivate, setIsPrivate] = useState(fallback.isPrivate);
   const [gender, setGender] = useState<string>("other");
+  const [avatarPreview, setAvatarPreview] = useState<string>(
+    currentUser?.avatarUrl && currentUser.avatarUrl !== ""
+      ? currentUser.avatarUrl
+      : fallback.avatarUrl,
+  );
+  const [avatarDataUrl, setAvatarDataUrl] = useState<string>("");
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const saveProfile = useSaveProfile();
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      setAvatarPreview(result);
+      setAvatarDataUrl(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSave = async () => {
+    const finalAvatarUrl = avatarDataUrl || avatarPreview;
+    // Always update local state immediately so the UI reflects the changes
+    updateUser({ displayName, username, bio, avatarUrl: finalAvatarUrl });
     try {
       await saveProfile.mutateAsync({
         displayName,
@@ -40,13 +78,13 @@ export function EditProfilePage() {
         bio,
         websiteUrl: website,
         isPrivate,
-        avatarUrl: user.avatarUrl,
+        avatarUrl: finalAvatarUrl,
         gender: Gender.other,
       });
-      toast.success("Profile updated!");
     } catch {
-      toast.error("Failed to save profile");
+      // Backend save failed, but local update already succeeded
     }
+    toast.success("Profile updated!");
   };
 
   return (
@@ -71,25 +109,53 @@ export function EditProfilePage() {
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
             <GlassAvatar
-              src={user.avatarUrl}
-              alt={user.displayName}
+              src={avatarPreview}
+              alt={displayName || "Profile"}
               size="2xl"
             />
             <button
               type="button"
+              onClick={() => avatarInputRef.current?.click()}
               className="absolute bottom-1 right-1 w-8 h-8 rounded-full gradient-bg flex items-center justify-center shadow-glow-sm hover:scale-110 transition-transform"
               aria-label="Change profile photo"
             >
               <Camera size={14} className="text-white" />
             </button>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
           </div>
           <button
             type="button"
+            onClick={() => avatarInputRef.current?.click()}
             className="text-sm text-primary hover:text-primary/80 transition-colors font-medium"
           >
             Change profile photo
           </button>
         </div>
+
+        {/* Profile info summary */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass rounded-xl px-4 py-3 flex items-center gap-3"
+        >
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-white truncate">
+              @{username || "username"}
+            </p>
+            <p className="text-xs text-white/40 truncate">
+              {displayName || "Display Name"}
+            </p>
+          </div>
+          <div className="text-xs text-white/30 text-right flex-shrink-0">
+            <p>{bio.length}/150 bio</p>
+          </div>
+        </motion.div>
 
         {/* Form fields */}
         <div className="space-y-4">

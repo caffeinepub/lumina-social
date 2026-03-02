@@ -1,15 +1,15 @@
+import { useAuthContext } from "@/components/auth/AuthContext";
 import { GlassButton } from "@/components/glass/GlassButton";
 import { GlassInput } from "@/components/glass/GlassInput";
 import { MusicSearchPicker } from "@/components/music/MusicSearchPicker";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MOCK_NOTES, MOCK_USERS, formatRelativeTime } from "@/data/mockData";
-import type { MockNote, MusicTrack } from "@/types";
+import { MOCK_NOTES, formatRelativeTime } from "@/data/mockData";
+import type { MockNote, MockUser, MusicTrack } from "@/types";
 import { Music, Pause, Play, Plus, Send, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-const ME = MOCK_USERS[0];
 const HOURS_23 = 23 * 3600000;
 
 function isNearExpiry(note: MockNote): boolean {
@@ -19,9 +19,10 @@ function isNearExpiry(note: MockNote): boolean {
 interface NoteDetailProps {
   note: MockNote;
   onClose: () => void;
+  me: MockUser;
 }
 
-function NoteDetail({ note, onClose }: NoteDetailProps) {
+function NoteDetail({ note, onClose, me }: NoteDetailProps) {
   const [replyText, setReplyText] = useState("");
   const [localReplies, setLocalReplies] = useState(note.replies);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -60,7 +61,7 @@ function NoteDetail({ note, onClose }: NoteDetailProps) {
     if (!replyText.trim()) return;
     const newReply = {
       id: `reply_${Date.now()}`,
-      author: ME,
+      author: me,
       text: replyText.trim(),
       timestamp: new Date(),
     };
@@ -214,9 +215,15 @@ interface CreateNoteProps {
   existingNote?: MockNote;
   onClose: () => void;
   onShare: (note: MockNote) => void;
+  me: MockUser;
 }
 
-function CreateNoteModal({ existingNote, onClose, onShare }: CreateNoteProps) {
+function CreateNoteModal({
+  existingNote,
+  onClose,
+  onShare,
+  me,
+}: CreateNoteProps) {
   const [text, setText] = useState(existingNote?.text ?? "");
   const [music, setMusic] = useState<MusicTrack | undefined>(
     existingNote?.musicTrack,
@@ -227,7 +234,7 @@ function CreateNoteModal({ existingNote, onClose, onShare }: CreateNoteProps) {
     if (!text.trim()) return;
     const note: MockNote = {
       id: `note_${Date.now()}`,
-      author: ME,
+      author: me,
       text: text.trim().slice(0, MAX_CHARS),
       musicTrack: music,
       timestamp: new Date(),
@@ -271,11 +278,19 @@ function CreateNoteModal({ existingNote, onClose, onShare }: CreateNoteProps) {
 
         {/* Avatar + preview bubble */}
         <div className="flex flex-col items-center gap-3 mb-5">
-          <img
-            src={ME.avatarUrl}
-            alt={ME.displayName}
-            className="w-14 h-14 rounded-full object-cover ring-2 ring-primary/40"
-          />
+          {me.avatarUrl ? (
+            <img
+              src={me.avatarUrl}
+              alt={me.displayName}
+              className="w-14 h-14 rounded-full object-cover ring-2 ring-primary/40"
+            />
+          ) : (
+            <div className="w-14 h-14 rounded-full gradient-bg flex items-center justify-center ring-2 ring-primary/40">
+              <span className="text-lg font-bold text-white">
+                {(me.displayName || me.username || "?")[0]?.toUpperCase()}
+              </span>
+            </div>
+          )}
           {text && (
             <div className="glass rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm text-white/90 text-center max-w-[200px]">
               {text}
@@ -329,6 +344,22 @@ function CreateNoteModal({ existingNote, onClose, onShare }: CreateNoteProps) {
 }
 
 export function NotesPanel() {
+  const { currentUser } = useAuthContext();
+  const ME: MockUser = {
+    id: "me",
+    username: currentUser?.username ?? "you",
+    displayName: currentUser?.displayName ?? "You",
+    avatarUrl: currentUser?.avatarUrl ?? "",
+    bio: currentUser?.bio ?? "",
+    websiteUrl: "",
+    isPrivate: false,
+    followersCount: 0,
+    followingCount: 0,
+    postsCount: 0,
+    isFollowing: false,
+    isVerified: false,
+  };
+
   const [notes, setNotes] = useState<MockNote[]>(MOCK_NOTES);
   const [selectedNote, setSelectedNote] = useState<MockNote | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -364,11 +395,19 @@ export function NotesPanel() {
                 </div>
               )}
               <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-primary/60 relative">
-                <img
-                  src={ME.avatarUrl}
-                  alt={ME.displayName}
-                  className="w-full h-full object-cover"
-                />
+                {ME.avatarUrl ? (
+                  <img
+                    src={ME.avatarUrl}
+                    alt={ME.displayName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full gradient-bg flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">
+                      {(ME.displayName || ME.username || "?")[0]?.toUpperCase()}
+                    </span>
+                  </div>
+                )}
                 {!myNote && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                     <Plus size={16} className="text-white" />
@@ -423,6 +462,7 @@ export function NotesPanel() {
             key="note-detail"
             note={selectedNote}
             onClose={() => setSelectedNote(null)}
+            me={ME}
           />
         )}
         {isCreating && (
@@ -431,6 +471,7 @@ export function NotesPanel() {
             existingNote={myNote}
             onClose={() => setIsCreating(false)}
             onShare={handleShare}
+            me={ME}
           />
         )}
       </AnimatePresence>

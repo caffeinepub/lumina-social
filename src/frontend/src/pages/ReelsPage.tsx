@@ -1,6 +1,7 @@
+import { useAuthContext } from "@/components/auth/AuthContext";
 import { CommentDrawer } from "@/components/feed/CommentDrawer";
 import { ShareModal } from "@/components/feed/ShareModal";
-import { MOCK_REELS, MOCK_USERS, formatCount } from "@/data/mockData";
+import { MOCK_REELS, formatCount } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import type { MockComment, MockReel } from "@/types";
 import { Link } from "@tanstack/react-router";
@@ -14,17 +15,42 @@ import {
   VolumeX,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-function ReelCard({ reel }: { reel: MockReel }) {
+function ReelCard({
+  reel,
+  isActive,
+}: {
+  reel: MockReel;
+  isActive: boolean;
+}) {
+  const { currentUser } = useAuthContext();
   const [isLiked, setIsLiked] = useState(reel.isLiked);
   const [isSaved, setIsSaved] = useState(reel.isSaved);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [showLike, setShowLike] = useState(false);
   const [isCommentDrawerOpen, setIsCommentDrawerOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [localComments, setLocalComments] = useState<MockComment[]>([]);
   const [commentCountOffset, setCommentCountOffset] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Sync muted state with video element
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
+
+  // Play/pause based on active state
+  useEffect(() => {
+    if (!videoRef.current) return;
+    if (isActive) {
+      videoRef.current.play().catch(() => {});
+    } else {
+      videoRef.current.pause();
+    }
+  }, [isActive]);
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -34,10 +60,31 @@ function ReelCard({ reel }: { reel: MockReel }) {
     }
   };
 
+  const handleToggleMute = () => {
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+    if (videoRef.current) {
+      videoRef.current.muted = newMuted;
+    }
+  };
+
   const handleAddComment = (text: string) => {
     const newComment: MockComment = {
       id: `rc_${Date.now()}`,
-      author: MOCK_USERS[0],
+      author: {
+        id: "me",
+        username: currentUser?.username ?? "you",
+        displayName: currentUser?.displayName ?? "You",
+        avatarUrl: currentUser?.avatarUrl ?? "",
+        bio: currentUser?.bio ?? "",
+        websiteUrl: "",
+        isPrivate: false,
+        followersCount: 0,
+        followingCount: 0,
+        postsCount: 0,
+        isFollowing: false,
+        isVerified: false,
+      },
       text,
       timestamp: new Date(),
       likes: 0,
@@ -49,11 +96,27 @@ function ReelCard({ reel }: { reel: MockReel }) {
 
   return (
     <div className="relative w-full h-full flex-shrink-0 overflow-hidden rounded-none md:rounded-3xl bg-black">
-      {/* Thumbnail background */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${reel.thumbnailUrl})` }}
-      />
+      {/* Video element */}
+      {reel.videoUrl ? (
+        <video
+          ref={videoRef}
+          src={reel.videoUrl}
+          poster={reel.thumbnailUrl}
+          autoPlay
+          loop
+          playsInline
+          muted={isMuted}
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <track kind="captions" />
+        </video>
+      ) : (
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${reel.thumbnailUrl})` }}
+        />
+      )}
+
       {/* Dark gradient overlay for readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70" />
 
@@ -194,7 +257,7 @@ function ReelCard({ reel }: { reel: MockReel }) {
       <div className="absolute top-4 right-4 z-20 flex gap-2">
         <button
           type="button"
-          onClick={() => setIsMuted(!isMuted)}
+          onClick={handleToggleMute}
           className="w-9 h-9 rounded-full glass flex items-center justify-center"
           aria-label={isMuted ? "Unmute" : "Mute"}
         >
@@ -259,7 +322,7 @@ export function ReelsPage() {
           >
             {/* Reel player */}
             <div className="w-full h-full max-w-[420px] relative flex-shrink-0">
-              <ReelCard reel={reel} />
+              <ReelCard reel={reel} isActive={i === currentIndex} />
             </div>
 
             {/* Desktop metadata panel */}

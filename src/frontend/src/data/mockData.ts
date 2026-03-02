@@ -11,7 +11,39 @@ import type {
   MockUser,
 } from "@/types";
 
+export const CHOCO_USER: MockUser = {
+  id: "choco",
+  username: "chocolatecakekhanahai",
+  displayName: "chocolatecakekhanahai",
+  bio: "Existing is really overrated.",
+  avatarUrl: "/assets/uploads/2-1.jpg",
+  websiteUrl: "",
+  isPrivate: false,
+  followersCount: 3812,
+  followingCount: 214,
+  postsCount: 97,
+  isFollowing: true,
+  isVerified: false,
+};
+
+export const AREY_USER: MockUser = {
+  id: "arey",
+  username: "areymhuapkix",
+  displayName: "Abe teri fav hu 🤤",
+  bio: '👉🏻👈🏻\nsahi kehta tha "u deserve better"\n',
+  avatarUrl: "/assets/uploads/frutu-1.jpg",
+  websiteUrl: "",
+  isPrivate: false,
+  followersCount: 1247,
+  followingCount: 389,
+  postsCount: 58,
+  isFollowing: true,
+  isVerified: false,
+};
+
 export const MOCK_USERS: MockUser[] = [
+  CHOCO_USER,
+  AREY_USER,
   {
     id: "1",
     username: "aurora.lens",
@@ -156,7 +188,7 @@ const MOCK_COMMENTS: MockComment[] = [
 export const MOCK_POSTS: MockPost[] = [
   {
     id: "p1",
-    author: MOCK_USERS[0],
+    author: MOCK_USERS[1], // aurora.lens
     imageUrl: "https://picsum.photos/seed/lumina_p1/600/600",
     caption:
       "Golden hour in Shinjuku 🌆 The city never stops breathing. Caught this moment between two worlds — neon signs waking up as sunlight dies.",
@@ -172,7 +204,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p2",
-    author: MOCK_USERS[2],
+    author: MOCK_USERS[3], // velvet.sky - fashion
     imageUrl: "https://picsum.photos/seed/lumina_p2/600/600",
     caption:
       "New collection drop 🌸 Fashion is the armor to survive everyday life. This piece took 3 weeks to conceptualize.",
@@ -188,7 +220,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p3",
-    author: MOCK_USERS[4],
+    author: MOCK_USERS[5], // luna.abstract - 3D digital artist
     imageUrl: "https://picsum.photos/seed/lumina_p3/600/600",
     caption:
       "3D sculpture series: Fragments of Time 🎨 Each piece represents a memory dissolving into abstraction.",
@@ -203,7 +235,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p4",
-    author: MOCK_USERS[1],
+    author: MOCK_USERS[2], // neon.nomad - code/digital
     imageUrl: "https://picsum.photos/seed/lumina_p4/600/600",
     caption:
       "When code becomes art 💻✨ Built a generative algorithm that translates sound waves into visual geometry. Mesmerizing to watch.",
@@ -218,7 +250,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p5",
-    author: MOCK_USERS[5],
+    author: MOCK_USERS[6], // prism.collective - design
     imageUrl: "https://picsum.photos/seed/lumina_p5/600/600",
     caption:
       "Identities in flux ◈ New visual identity project for a fintech startup. Geometric precision meets organic flow.",
@@ -234,7 +266,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p6",
-    author: MOCK_USERS[3],
+    author: MOCK_USERS[4], // echo.frames - filmmaker
     imageUrl: "https://picsum.photos/seed/lumina_p6/600/600",
     caption:
       "Behind the lens of our latest short film 🎬 Practical effects using colored gels and fog machines. No CGI, pure in-camera magic.",
@@ -250,7 +282,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p7",
-    author: MOCK_USERS[6],
+    author: MOCK_USERS[7], // drift.code - synth/coding
     imageUrl: "https://picsum.photos/seed/lumina_p7/600/600",
     caption:
       "Late night coding sessions hit different with the right playlist 🎵 Sharing my Synthwave focus mix on my profile.",
@@ -265,7 +297,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p8",
-    author: MOCK_USERS[7],
+    author: MOCK_USERS[8], // zenith.flora - plants
     imageUrl: "https://picsum.photos/seed/lumina_p8/600/600",
     caption:
       "Monstera deliciosa under diffused studio light 🌿 Plant photography is an exercise in patience and stillness.",
@@ -291,29 +323,53 @@ export const STORY_GRADIENTS = [
   "linear-gradient(135deg, #6366F1, #F43F5E)",
 ];
 
-export const MOCK_STORIES: MockStory[] = MOCK_USERS.map((user, i) => ({
-  id: `story_${user.id}`,
-  author: user,
-  imageGradient: STORY_GRADIENTS[i % STORY_GRADIENTS.length],
-  text: [
-    "Golden hour vibes ✨",
-    "New work dropping soon 🔥",
-    "Studio day 🎨",
-    "Tokyo nights 🌙",
-    undefined,
-    "BTS reel coming 🎬",
-    undefined,
-    "Morning light 🌿",
-  ][i],
-  timestamp: new Date(Date.now() - (i * 2 + 1) * 3600000),
-  isViewed: i > 3,
+export const CHOCO_STORY: MockStory = {
+  id: "story_choco",
+  author: CHOCO_USER,
+  imageGradient: "linear-gradient(135deg, #1a1a2e, #16213e)",
+  text: "existing is really overrated.",
+  timestamp: new Date(Date.now() - 1 * 3600000),
+  isViewed: false,
   duration: 5000,
-}));
+};
+
+export const AREY_STORY: MockStory = {
+  id: "story_arey",
+  author: AREY_USER,
+  imageGradient: "linear-gradient(135deg, #7c3aed, #db2777)",
+  text: "👉🏻👈🏻 u deserve better fr",
+  timestamp: new Date(Date.now() - 2 * 3600000),
+  isViewed: false,
+  duration: 5000,
+};
+
+export const MOCK_STORIES: MockStory[] = [
+  CHOCO_STORY,
+  AREY_STORY,
+  ...MOCK_USERS.slice(2).map((user, i) => ({
+    id: `story_${user.id}`,
+    author: user,
+    imageGradient: STORY_GRADIENTS[i % STORY_GRADIENTS.length],
+    text: [
+      "Golden hour vibes ✨",
+      "New work dropping soon 🔥",
+      "Studio day 🎨",
+      "Tokyo nights 🌙",
+      undefined,
+      "BTS reel coming 🎬",
+      undefined,
+      "Morning light 🌿",
+    ][i],
+    timestamp: new Date(Date.now() - (i * 2 + 1) * 3600000),
+    isViewed: i > 3,
+    duration: 5000,
+  })),
+];
 
 export const MOCK_REELS: MockReel[] = [
   {
     id: "r1",
-    author: MOCK_USERS[0],
+    author: MOCK_USERS[1], // aurora.lens
     caption: "Tokyo night street in slow motion 🌆 The city breathes",
     audioTrack: "Midnight City — M83",
     likes: 24891,
@@ -322,12 +378,14 @@ export const MOCK_REELS: MockReel[] = [
     isLiked: false,
     isSaved: false,
     thumbnailUrl: "https://picsum.photos/seed/lumina_r1/420/748",
+    videoUrl:
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     duration: "0:28",
     views: 148200,
   },
   {
     id: "r2",
-    author: MOCK_USERS[2],
+    author: MOCK_USERS[3], // velvet.sky - fashion
     caption: "Fashion week backstage chaos in 30 seconds 🌸✨",
     audioTrack: "Bejeweled — Taylor Swift",
     likes: 89234,
@@ -336,12 +394,14 @@ export const MOCK_REELS: MockReel[] = [
     isLiked: true,
     isSaved: false,
     thumbnailUrl: "https://picsum.photos/seed/lumina_r2/420/748",
+    videoUrl:
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
     duration: "0:30",
     views: 892000,
   },
   {
     id: "r3",
-    author: MOCK_USERS[4],
+    author: MOCK_USERS[5], // luna.abstract - 3D artist
     caption: "3D sculpting timelapse: 72 hours in 30 seconds 🎨",
     audioTrack: "Flume — Holdin On",
     likes: 31456,
@@ -350,12 +410,14 @@ export const MOCK_REELS: MockReel[] = [
     isLiked: false,
     isSaved: true,
     thumbnailUrl: "https://picsum.photos/seed/lumina_r3/420/748",
+    videoUrl:
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
     duration: "0:30",
     views: 234500,
   },
   {
     id: "r4",
-    author: MOCK_USERS[3],
+    author: MOCK_USERS[4], // echo.frames - filmmaker
     caption: "Practical effects magic — no CGI, pure film 🎬",
     audioTrack: "Hans Zimmer — Time",
     likes: 15678,
@@ -364,12 +426,14 @@ export const MOCK_REELS: MockReel[] = [
     isLiked: false,
     isSaved: false,
     thumbnailUrl: "https://picsum.photos/seed/lumina_r4/420/748",
+    videoUrl:
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
     duration: "0:45",
     views: 98400,
   },
   {
     id: "r5",
-    author: MOCK_USERS[5],
+    author: MOCK_USERS[6], // prism.collective - design
     caption: "Brand identity design process — from concept to final 🔺",
     audioTrack: "Lo-fi Study Beats",
     likes: 8923,
@@ -378,6 +442,8 @@ export const MOCK_REELS: MockReel[] = [
     isLiked: true,
     isSaved: false,
     thumbnailUrl: "https://picsum.photos/seed/lumina_r5/420/748",
+    videoUrl:
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
     duration: "0:60",
     views: 67300,
   },
@@ -400,19 +466,51 @@ const mockMsg = (
 
 export const MOCK_CONVERSATIONS: MockConversation[] = [
   {
+    id: "conv_choco",
+    participants: [CHOCO_USER],
+    lastMessage: mockMsg(
+      "mc_last",
+      CHOCO_USER.id,
+      "okay but why does sleep feel like a personal attack on my vibe",
+      2,
+      false,
+    ),
+    unreadCount: 3,
+    isGroup: false,
+    isPinned: true,
+    isMuted: false,
+  },
+  {
+    id: "conv_arey",
+    participants: [AREY_USER],
+    lastMessage: mockMsg(
+      "ma_last",
+      AREY_USER.id,
+      "abe sun mujhe, tu actually deserve karta hai sab kuch achha 🫶🏻",
+      8,
+      false,
+    ),
+    unreadCount: 2,
+    isGroup: false,
+    isPinned: true,
+    isMuted: false,
+  },
+  {
     id: "conv1",
-    participants: [MOCK_USERS[0], MOCK_USERS[2]],
-    lastMessage: mockMsg("m1", MOCK_USERS[2].id, "Love the new shoot! 🔥", 5),
+    // aurora.lens [1] + velvet.sky [3]
+    participants: [MOCK_USERS[1], MOCK_USERS[3]],
+    lastMessage: mockMsg("m1", MOCK_USERS[3].id, "Love the new shoot! 🔥", 5),
     unreadCount: 2,
     isGroup: false,
     isMuted: false,
   },
   {
     id: "conv2",
-    participants: [MOCK_USERS[4], MOCK_USERS[1]],
+    // luna.abstract [5] + neon.nomad [2]
+    participants: [MOCK_USERS[5], MOCK_USERS[2]],
     lastMessage: mockMsg(
       "m2",
-      MOCK_USERS[1].id,
+      MOCK_USERS[2].id,
       "Let's collaborate on that piece",
       32,
     ),
@@ -422,10 +520,11 @@ export const MOCK_CONVERSATIONS: MockConversation[] = [
   },
   {
     id: "conv3",
-    participants: [MOCK_USERS[0], MOCK_USERS[1], MOCK_USERS[5]],
+    // aurora [1] + neon.nomad [2] + prism [6]
+    participants: [MOCK_USERS[1], MOCK_USERS[2], MOCK_USERS[6]],
     lastMessage: mockMsg(
       "m3",
-      MOCK_USERS[5].id,
+      MOCK_USERS[6].id,
       "Brief is ready, check it out!",
       120,
     ),
@@ -436,10 +535,11 @@ export const MOCK_CONVERSATIONS: MockConversation[] = [
   },
   {
     id: "conv4",
-    participants: [MOCK_USERS[3], MOCK_USERS[6]],
+    // echo.frames [4] + drift.code [7]
+    participants: [MOCK_USERS[4], MOCK_USERS[7]],
     lastMessage: mockMsg(
       "m4",
-      MOCK_USERS[3].id,
+      MOCK_USERS[4].id,
       "The soundtrack fits perfectly 🎵",
       360,
     ),
@@ -449,10 +549,11 @@ export const MOCK_CONVERSATIONS: MockConversation[] = [
   },
   {
     id: "conv5",
-    participants: [MOCK_USERS[7], MOCK_USERS[2]],
+    // zenith.flora [8] + velvet.sky [3]
+    participants: [MOCK_USERS[8], MOCK_USERS[3]],
     lastMessage: mockMsg(
       "m5",
-      MOCK_USERS[7].id,
+      MOCK_USERS[8].id,
       "Those plants are incredible!",
       720,
     ),
@@ -463,6 +564,267 @@ export const MOCK_CONVERSATIONS: MockConversation[] = [
 ];
 
 export const MOCK_MESSAGES_BY_CONV: Record<string, MockMessage[]> = {
+  conv_arey: [
+    mockMsg("ma1", "me", "yaar aaj kuch acha nahi lag raha", 1500),
+    mockMsg("ma2", AREY_USER.id, "kya hua bata mujhe", 1498),
+    mockMsg("ma3", "me", "bas aise hi.. sab overwhelm ho raha hai", 1495),
+    mockMsg("ma4", AREY_USER.id, "abe ruk, deep breath le pehle", 1493),
+    mockMsg("ma5", AREY_USER.id, "tu bata kya chal raha hai life mein", 1492),
+    mockMsg("ma6", "me", "sab log bolte hai tu deserve karta hai better", 1490),
+    mockMsg("ma7", "me", "par pata nahi kyun lagta hai I'm the problem", 1488),
+    mockMsg("ma8", AREY_USER.id, "ARE PAGAL HAI TU?!", 1485),
+    mockMsg("ma9", AREY_USER.id, "sahi kehta tha — u deserve better", 1484),
+    mockMsg(
+      "ma10",
+      AREY_USER.id,
+      "aur ye baat main teri 'best friend' ki taraf se nahi bol rahi",
+      1482,
+    ),
+    mockMsg("ma11", AREY_USER.id, "bol rahi hun kyunki it's TRUE", 1481),
+    mockMsg("ma12", "me", "yaar emotional mat kar please 😭", 1478),
+    mockMsg(
+      "ma13",
+      AREY_USER.id,
+      "nahi karungi emotional, facts bolunga tujhe",
+      1475,
+    ),
+    mockMsg(
+      "ma14",
+      AREY_USER.id,
+      "tu genuine hai, caring hai, aur people take advantage of that",
+      1473,
+    ),
+    mockMsg("ma15", "me", "pata hai mujhe bhi.. par kya karun", 1470),
+    mockMsg("ma16", AREY_USER.id, "apni value pehchan bhai. seriously.", 1468),
+    mockMsg("ma17", "me", "tera pata kaise hota hai ye sab 😅", 1465),
+    mockMsg("ma18", AREY_USER.id, "because I pay attention", 1463),
+    mockMsg(
+      "ma19",
+      AREY_USER.id,
+      "aur ye wala trait tujhme bahut kam logon mein hota hai",
+      1460,
+    ),
+    mockMsg("ma20", "me", "okay okay I hear you didi", 1455),
+    mockMsg("ma21", AREY_USER.id, "DIDI 😭 acha hua call kiya", 1453),
+    mockMsg(
+      "ma22",
+      "me",
+      "haha okay but seriously thanks for being there",
+      1450,
+    ),
+    mockMsg(
+      "ma23",
+      AREY_USER.id,
+      "always. 24/7 available for your existential crises 🫶🏻",
+      1448,
+    ),
+    mockMsg("ma24", "me", "what would I do without you honestly", 1200),
+    mockMsg(
+      "ma25",
+      AREY_USER.id,
+      "survive probably but with much worse decisions",
+      1198,
+    ),
+    mockMsg("ma26", "me", "accurate 😂", 1195),
+    mockMsg("ma27", AREY_USER.id, "tune khaana khaaya?", 900),
+    mockMsg("ma28", "me", "kal se nahi khaaya properly", 898),
+    mockMsg("ma29", AREY_USER.id, "BHAI.", 896),
+    mockMsg("ma30", AREY_USER.id, "ye kya tarika hai", 895),
+    mockMsg("ma31", "me", "bhook nahi lagi", 893),
+    mockMsg("ma32", AREY_USER.id, "fir bhi khaana chahiye na", 891),
+    mockMsg("ma33", AREY_USER.id, "apna khayal rakh please", 890),
+    mockMsg("ma34", "me", "haan haan khaaunga", 888),
+    mockMsg("ma35", AREY_USER.id, "pinky promise?", 886),
+    mockMsg("ma36", "me", "👉🏻👈🏻 promise", 884),
+    mockMsg("ma37", AREY_USER.id, "HAHA omg you actually did the thing", 882),
+    mockMsg("ma38", "me", "tere wala sign hai ye technically", 880),
+    mockMsg("ma39", AREY_USER.id, "i'm honoured 😭✨", 878),
+    mockMsg("ma40", "me", "tu meri fav hai pata hai", 500),
+    mockMsg("ma41", AREY_USER.id, "abe teri fav hu 🤤 I know I know", 498),
+    mockMsg("ma42", "me", "haha tune toh bio hi bana li iske upar", 496),
+    mockMsg(
+      "ma43",
+      AREY_USER.id,
+      "priority list mein sab se upar hun na toh...",
+      494,
+    ),
+    mockMsg("ma44", "me", "facts can't even argue 😂", 492),
+    mockMsg(
+      "ma45",
+      AREY_USER.id,
+      "okay tune kuch plan kiya hai weekend ke liye?",
+      300,
+    ),
+    mockMsg("ma46", "me", "nahi kuch nahi... tu bata", 298),
+    mockMsg(
+      "ma47",
+      AREY_USER.id,
+      "let's do a movie night, tujhe force karna padega bahar se",
+      296,
+    ),
+    mockMsg("ma48", "me", "please haan yes please 🙏", 294),
+    mockMsg("ma49", AREY_USER.id, "done. Saturday. no excuses.", 292),
+    mockMsg(
+      "ma50",
+      AREY_USER.id,
+      "abe sun mujhe, tu actually deserve karta hai sab kuch achha 🫶🏻",
+      8,
+      false,
+    ),
+  ],
+  conv_choco: [
+    mockMsg("mc1", "me", "okayy so I had the weirdest dream last night", 1440),
+    mockMsg("mc2", CHOCO_USER.id, "tell me EVERYTHING", 1438),
+    mockMsg(
+      "mc3",
+      "me",
+      "I was in a library but every book was just a mirror",
+      1436,
+    ),
+    mockMsg("mc4", CHOCO_USER.id, "okay that's lowkey terrifying", 1434),
+    mockMsg("mc5", CHOCO_USER.id, "but also... poetic?", 1433),
+    mockMsg(
+      "mc6",
+      "me",
+      "RIGHT like idk if I should be scared or inspired",
+      1430,
+    ),
+    mockMsg("mc7", CHOCO_USER.id, "both. always both.", 1428),
+    mockMsg("mc8", "me", "why are you always right it's annoying", 1425),
+    mockMsg("mc9", CHOCO_USER.id, "I know I know 😌", 1420),
+    mockMsg(
+      "mc10",
+      CHOCO_USER.id,
+      "okay but unrelated — I tried making actual chocolate cake today",
+      1200,
+    ),
+    mockMsg("mc11", "me", "AND??", 1198),
+    mockMsg(
+      "mc12",
+      CHOCO_USER.id,
+      "it was... fine. just fine. I'm devastated",
+      1196,
+    ),
+    mockMsg("mc13", "me", "lmaooo you hyped it up for nothing", 1194),
+    mockMsg(
+      "mc14",
+      CHOCO_USER.id,
+      "I hyped it up for EVERYTHING and it betrayed me",
+      1192,
+    ),
+    mockMsg("mc15", "me", "okay but was the frosting good at least", 1190),
+    mockMsg(
+      "mc16",
+      CHOCO_USER.id,
+      "the frosting was the only honest thing in the room",
+      1188,
+    ),
+    mockMsg(
+      "mc17",
+      "me",
+      "that's lowkey the most relatable thing you've ever said",
+      1185,
+    ),
+    mockMsg("mc18", CHOCO_USER.id, "I contain multitudes", 1180),
+    mockMsg("mc19", "me", "you contain drama mostly", 1178),
+    mockMsg("mc20", CHOCO_USER.id, "same thing", 1175),
+    mockMsg(
+      "mc21",
+      "me",
+      "do you ever think about how weird it is that we exist",
+      900,
+    ),
+    mockMsg("mc22", CHOCO_USER.id, "only constantly", 898),
+    mockMsg(
+      "mc23",
+      CHOCO_USER.id,
+      "like why does existing have so many steps",
+      897,
+    ),
+    mockMsg("mc24", "me", "wake up, be perceived, go to sleep, repeat", 895),
+    mockMsg(
+      "mc25",
+      CHOCO_USER.id,
+      "the being perceived part is the worst one",
+      893,
+    ),
+    mockMsg(
+      "mc26",
+      "me",
+      "agreed. I hate it here but also I'm not leaving",
+      890,
+    ),
+    mockMsg("mc27", CHOCO_USER.id, "exactly. committed to the bit", 888),
+    mockMsg("mc28", "me", "what are you doing rn", 600),
+    mockMsg(
+      "mc29",
+      CHOCO_USER.id,
+      "staring at my ceiling thinking about nothing",
+      598,
+    ),
+    mockMsg("mc30", CHOCO_USER.id, "it's quite peaceful actually", 597),
+    mockMsg("mc31", "me", "that sounds like a whole vibe tbh", 595),
+    mockMsg("mc32", CHOCO_USER.id, "it really is. 10/10 activity", 593),
+    mockMsg("mc33", "me", "I should try doing nothing sometime", 590),
+    mockMsg(
+      "mc34",
+      CHOCO_USER.id,
+      "you'd hate it, you're too in your head",
+      588,
+    ),
+    mockMsg("mc35", "me", "rude. accurate. but rude.", 585),
+    mockMsg("mc36", CHOCO_USER.id, "that's just how I show affection", 583),
+    mockMsg("mc37", "me", "I know and I've accepted my fate", 580),
+    mockMsg("mc38", CHOCO_USER.id, "growth 🫶", 578),
+    mockMsg(
+      "mc39",
+      "me",
+      "okay okay last thing — what song do I need right now",
+      120,
+    ),
+    mockMsg(
+      "mc40",
+      CHOCO_USER.id,
+      "hmm describe your current emotion in three words",
+      118,
+    ),
+    mockMsg("mc41", "me", "tired but unbothered", 116),
+    mockMsg("mc42", CHOCO_USER.id, "that's two words but okay", 114),
+    mockMsg(
+      "mc43",
+      CHOCO_USER.id,
+      "something slow and heavy that still feels like floating",
+      113,
+    ),
+    mockMsg("mc44", "me", "yes perfect you get it", 111),
+    mockMsg("mc45", CHOCO_USER.id, "I always get it", 109),
+    mockMsg("mc46", "me", "okay but seriously thank you for existing", 60),
+    mockMsg(
+      "mc47",
+      CHOCO_USER.id,
+      "existing is really overrated but I'll do it for you",
+      58,
+    ),
+    mockMsg(
+      "mc48",
+      "me",
+      "that's the sweetest thing you've ever said to me",
+      55,
+    ),
+    mockMsg(
+      "mc49",
+      CHOCO_USER.id,
+      "don't tell anyone, I have a reputation",
+      53,
+    ),
+    mockMsg(
+      "mc50",
+      CHOCO_USER.id,
+      "okay but why does sleep feel like a personal attack on my vibe",
+      2,
+      false,
+    ),
+  ],
   conv1: [
     mockMsg("m1_1", "me", "Just posted the Shinjuku series!", 65),
     mockMsg(
@@ -571,7 +933,7 @@ export const MOCK_NOTIFICATIONS: MockNotification[] = [
   {
     id: "n5",
     type: "like",
-    actor: MOCK_USERS[0],
+    actor: CHOCO_USER,
     postThumbnail: "https://picsum.photos/seed/lumina_p4/60/60",
     text: "liked your reel",
     timestamp: new Date(Date.now() - 7200000),
@@ -617,8 +979,44 @@ export const TRENDING_HASHTAGS = [
 
 export const MOCK_NOTES: MockNote[] = [
   {
+    id: "note_arey",
+    author: AREY_USER,
+    text: "👉🏻👈🏻 u deserve better, always",
+    timestamp: new Date(Date.now() - 45 * 60000),
+    expiresAt: new Date(Date.now() - 45 * 60000 + 24 * 3600000),
+    replies: [],
+  },
+  {
+    id: "note_choco",
+    author: CHOCO_USER,
+    text: "sleep is a scam and yet here I am",
+    timestamp: new Date(Date.now() - 30 * 60000),
+    expiresAt: new Date(Date.now() - 30 * 60000 + 24 * 3600000),
+    replies: [
+      {
+        id: "nr_choco1",
+        author: {
+          id: "me",
+          username: "you",
+          displayName: "You",
+          bio: "",
+          websiteUrl: "",
+          avatarUrl: "",
+          isPrivate: false,
+          followersCount: 0,
+          followingCount: 0,
+          postsCount: 0,
+          isFollowing: false,
+          isVerified: false,
+        },
+        text: "same. solidarity.",
+        timestamp: new Date(Date.now() - 20 * 60000),
+      },
+    ],
+  },
+  {
     id: "note1",
-    author: MOCK_USERS[0],
+    author: MOCK_USERS[1], // aurora.lens
     text: "golden hour was unreal today 🌅",
     musicTrack: {
       id: "t1",
@@ -634,7 +1032,7 @@ export const MOCK_NOTES: MockNote[] = [
     replies: [
       {
         id: "nr1",
-        author: MOCK_USERS[1],
+        author: MOCK_USERS[2], // neon.nomad
         text: "stunning shot! 🔥",
         timestamp: new Date(Date.now() - 1 * 3600000),
       },
@@ -642,7 +1040,7 @@ export const MOCK_NOTES: MockNote[] = [
   },
   {
     id: "note2",
-    author: MOCK_USERS[1],
+    author: MOCK_USERS[2], // neon.nomad
     text: "new generative piece dropping tonight 👾",
     timestamp: new Date(Date.now() - 4 * 3600000),
     expiresAt: new Date(Date.now() - 4 * 3600000 + 24 * 3600000),
@@ -650,7 +1048,7 @@ export const MOCK_NOTES: MockNote[] = [
   },
   {
     id: "note3",
-    author: MOCK_USERS[2],
+    author: MOCK_USERS[3], // velvet.sky - fashion
     text: "Paris fashion week energy is immaculate ✨",
     musicTrack: {
       id: "t2",
@@ -666,13 +1064,13 @@ export const MOCK_NOTES: MockNote[] = [
     replies: [
       {
         id: "nr2",
-        author: MOCK_USERS[0],
+        author: MOCK_USERS[1], // aurora.lens
         text: "jealous!! bring me back something 🙏",
         timestamp: new Date(Date.now() - 5 * 3600000),
       },
       {
         id: "nr3",
-        author: MOCK_USERS[4],
+        author: MOCK_USERS[5], // luna.abstract
         text: "living the dream 🌸",
         timestamp: new Date(Date.now() - 4.5 * 3600000),
       },
@@ -680,7 +1078,7 @@ export const MOCK_NOTES: MockNote[] = [
   },
   {
     id: "note4",
-    author: MOCK_USERS[3],
+    author: MOCK_USERS[4], // echo.frames - filmmaker
     text: "filming all night, coffee is life rn ☕",
     timestamp: new Date(Date.now() - 8 * 3600000),
     expiresAt: new Date(Date.now() - 8 * 3600000 + 24 * 3600000),
@@ -688,7 +1086,7 @@ export const MOCK_NOTES: MockNote[] = [
   },
   {
     id: "note5",
-    author: MOCK_USERS[4],
+    author: MOCK_USERS[5], // luna.abstract - 3D artist
     text: "3D renders looking insane this week 🎨",
     musicTrack: {
       id: "t3",
@@ -704,7 +1102,7 @@ export const MOCK_NOTES: MockNote[] = [
     replies: [
       {
         id: "nr4",
-        author: MOCK_USERS[5],
+        author: MOCK_USERS[6], // prism.collective
         text: "send me the files! would love to collab",
         timestamp: new Date(Date.now() - 9 * 3600000),
       },
@@ -712,7 +1110,7 @@ export const MOCK_NOTES: MockNote[] = [
   },
   {
     id: "note6",
-    author: MOCK_USERS[5],
+    author: MOCK_USERS[6], // prism.collective - design
     text: "design brief approved — let's gooo 🔺",
     timestamp: new Date(Date.now() - 14 * 3600000),
     expiresAt: new Date(Date.now() - 14 * 3600000 + 24 * 3600000),
@@ -720,7 +1118,7 @@ export const MOCK_NOTES: MockNote[] = [
   },
   {
     id: "note7",
-    author: MOCK_USERS[6],
+    author: MOCK_USERS[7], // drift.code - synth composer
     text: "synthwave mix almost done, just need vocals 🎵",
     musicTrack: {
       id: "t4",
@@ -735,7 +1133,7 @@ export const MOCK_NOTES: MockNote[] = [
     replies: [
       {
         id: "nr5",
-        author: MOCK_USERS[3],
+        author: MOCK_USERS[4], // echo.frames - filmmaker/creative
         text: "I can lay down some vocals if you want!",
         timestamp: new Date(Date.now() - 18 * 3600000),
       },

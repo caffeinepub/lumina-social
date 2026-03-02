@@ -86,7 +86,7 @@ export function PostCard({ post }: PostCardProps) {
         isVerified: false,
       };
     }
-    return MOCK_USERS[0];
+    return MOCK_USERS[1]; // aurora.lens is the default mock logged-in user
   }, [currentUser]);
 
   const handleAddComment = useCallback(
@@ -177,19 +177,32 @@ export function PostCard({ post }: PostCardProps) {
         </DropdownMenu>
       </div>
 
-      {/* Image area */}
+      {/* Media area */}
       <button
         type="button"
         className="relative w-full aspect-square cursor-pointer overflow-hidden block"
         onClick={handleDoubleTap}
         aria-label="Double tap to like"
       >
-        <img
-          src={post.imageUrl}
-          alt={post.caption}
-          className="w-full aspect-square object-cover"
-          loading="lazy"
-        />
+        {post.mediaType === "video" ? (
+          <video
+            src={post.imageUrl}
+            className="w-full aspect-square object-cover"
+            autoPlay={false}
+            loop
+            playsInline
+            controls
+          >
+            <track kind="captions" />
+          </video>
+        ) : (
+          <img
+            src={post.imageUrl}
+            alt={post.caption}
+            className="w-full aspect-square object-cover"
+            loading="lazy"
+          />
+        )}
 
         {/* Double tap heart */}
         <AnimatePresence>

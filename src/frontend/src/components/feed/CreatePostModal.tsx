@@ -1,3 +1,4 @@
+import { useAuthContext } from "@/components/auth/AuthContext";
 import { GlassButton } from "@/components/glass/GlassButton";
 import { GlassInput } from "@/components/glass/GlassInput";
 import {
@@ -40,15 +41,24 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
   const [tags, setTags] = useState("");
   const [isPublic, setIsPublic] = useState(true);
   const [preview, setPreview] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const { addPost } = useApp();
+  const { currentUser } = useAuthContext();
 
   const handleFile = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => setPreview(e.target?.result as string);
-    reader.readAsDataURL(file);
+    if (file.type.startsWith("video/")) {
+      setMediaType("video");
+      const url = URL.createObjectURL(file);
+      setPreview(url);
+    } else {
+      setMediaType("image");
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
   }, []);
 
   const handleDrop = useCallback(
@@ -56,7 +66,7 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
       e.preventDefault();
       setIsDragging(false);
       const file = e.dataTransfer.files[0];
-      if (file?.type.startsWith("image/")) {
+      if (file?.type.startsWith("image/") || file?.type.startsWith("video/")) {
         handleFile(file);
       }
     },
@@ -67,9 +77,28 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
     setIsUploading(true);
     await new Promise((r) => setTimeout(r, 800));
 
+    const author = currentUser
+      ? {
+          id: "me",
+          username: currentUser.username,
+          displayName: currentUser.displayName,
+          bio: currentUser.bio ?? "",
+          avatarUrl:
+            currentUser.avatarUrl ||
+            `https://i.pravatar.cc/150?u=${currentUser.username}`,
+          websiteUrl: "",
+          isPrivate: false,
+          followersCount: 0,
+          followingCount: 0,
+          postsCount: 0,
+          isFollowing: false,
+          isVerified: false,
+        }
+      : MOCK_USERS[1]; // aurora.lens is the default mock logged-in user
+
     const newPost: MockPost = {
       id: `post_${Date.now()}`,
-      author: MOCK_USERS[0],
+      author,
       imageUrl: preview || getRandomGradient(),
       caption,
       likes: 0,
@@ -81,6 +110,7 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
       hasStory: false,
       tags: tags ? tags.split(" ").filter(Boolean) : [],
       isPublic,
+      mediaType,
     };
 
     addPost(newPost);
@@ -90,6 +120,7 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
     setLocation("");
     setTags("");
     setPreview(null);
+    setMediaType("image");
     onClose();
   };
 
@@ -98,6 +129,7 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
     setLocation("");
     setTags("");
     setPreview(null);
+    setMediaType("image");
     onClose();
   };
 
@@ -137,30 +169,43 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
                   ? "border-primary/60 bg-primary/10"
                   : "border-white/15 hover:border-white/30 hover:bg-white/3",
               )}
-              aria-label="Upload image"
+              aria-label="Upload image or video"
             >
               <Upload size={28} className="text-white/30" />
               <div className="text-center">
                 <p className="text-sm text-white/60">
-                  Drop image here or click to browse
+                  Drop image or video here or click to browse
                 </p>
                 <p className="text-xs text-white/30 mt-0.5">
-                  JPG, PNG, GIF up to 10MB
+                  JPG, PNG, GIF, MP4, MOV up to 50MB
                 </p>
               </div>
             </button>
           ) : (
             <div className="relative rounded-2xl overflow-hidden aspect-square">
-              <img
-                src={preview}
-                alt="Post preview"
-                className="w-full h-full object-cover"
-              />
+              {mediaType === "video" ? (
+                <video
+                  src={preview}
+                  className="w-full h-full object-cover"
+                  controls
+                >
+                  <track kind="captions" />
+                </video>
+              ) : (
+                <img
+                  src={preview}
+                  alt="Post preview"
+                  className="w-full h-full object-cover"
+                />
+              )}
               <button
                 type="button"
-                onClick={() => setPreview(null)}
+                onClick={() => {
+                  setPreview(null);
+                  setMediaType("image");
+                }}
                 className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
-                aria-label="Remove image"
+                aria-label="Remove media"
               >
                 <X size={14} />
               </button>

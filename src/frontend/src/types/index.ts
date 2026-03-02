@@ -27,6 +27,7 @@ export interface MockPost {
   hasStory: boolean;
   tags?: string[];
   isPublic: boolean;
+  mediaType?: "image" | "video";
 }
 
 export interface MockComment {
@@ -74,6 +75,7 @@ export interface MockConversation {
   groupName?: string;
   groupAvatar?: string;
   isMuted: boolean;
+  isPinned?: boolean;
 }
 
 export interface MockMessage {
@@ -84,7 +86,13 @@ export interface MockMessage {
   timestamp: Date;
   isRead: boolean;
   reactions?: { emoji: string; count: number }[];
-  type: "text" | "image" | "sticker" | "voice";
+  type: "text" | "image" | "sticker" | "voice" | "shared_post";
+  sharedPost?: {
+    id: string;
+    imageUrl: string;
+    caption: string;
+    authorUsername: string;
+  };
 }
 
 export interface MockNotification {

@@ -1,7 +1,6 @@
 import { useAuthContext } from "@/components/auth/AuthContext";
 import { GradientText } from "@/components/glass/GradientText";
 import { useApp } from "@/context/AppContext";
-import { MOCK_USERS } from "@/data/mockData";
 import { useIsAdmin } from "@/hooks/useBackend";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
@@ -27,7 +26,7 @@ interface NavItem {
 
 export function Sidebar() {
   const location = useLocation();
-  const { logout } = useAuthContext();
+  const { logout, currentUser } = useAuthContext();
   const { unreadNotificationCount, setIsCreateOpen } = useApp();
   const { data: isAdmin } = useIsAdmin();
 
@@ -120,17 +119,27 @@ export function Sidebar() {
 
       {/* User mini-profile */}
       <div className="mt-4 px-3 py-3 glass rounded-xl flex items-center gap-3">
-        <img
-          src={MOCK_USERS[0].avatarUrl}
-          alt={MOCK_USERS[0].displayName}
-          className="w-8 h-8 rounded-full object-cover ring-1 ring-primary/40 flex-shrink-0"
-        />
+        {currentUser?.avatarUrl ? (
+          <img
+            src={currentUser.avatarUrl}
+            alt={currentUser.displayName}
+            className="w-8 h-8 rounded-full object-cover ring-1 ring-primary/40 flex-shrink-0"
+          />
+        ) : (
+          <div className="w-8 h-8 rounded-full gradient-bg flex items-center justify-center flex-shrink-0 ring-1 ring-primary/40">
+            <span className="text-xs font-bold text-white">
+              {(currentUser?.displayName ??
+                currentUser?.username ??
+                "?")[0]?.toUpperCase()}
+            </span>
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold text-white truncate">
-            {MOCK_USERS[0].username}
+            {currentUser?.username ?? "you"}
           </p>
           <p className="text-[10px] text-white/40 truncate">
-            {MOCK_USERS[0].displayName}
+            {currentUser?.displayName ?? "Your profile"}
           </p>
         </div>
       </div>
