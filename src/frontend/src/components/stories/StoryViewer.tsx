@@ -2,15 +2,17 @@ import { GlassInput } from "@/components/glass/GlassInput";
 import { MOCK_STORIES } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Heart, Send, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Heart, Share2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 interface StoryViewerProps {
   userId: string;
 }
 
 const STORY_DURATION = 5000;
+const REACTIONS = ["❤️", "🔥", "😮", "😂", "🙌"];
 
 export function StoryViewer({ userId }: StoryViewerProps) {
   const navigate = useNavigate();
@@ -19,8 +21,15 @@ export function StoryViewer({ userId }: StoryViewerProps) {
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [replyText, setReplyText] = useState("");
+  const [floatingReaction, setFloatingReaction] = useState<string | null>(null);
 
   const currentStory = userStories[currentIndex];
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: random viewer counts should be stable per session
+  const viewerCount = useMemo(
+    () => userStories.map(() => Math.floor(Math.random() * 500 + 100)),
+    [userId],
+  );
 
   const goNext = useCallback(() => {
     if (currentIndex < userStories.length - 1) {
@@ -65,6 +74,15 @@ export function StoryViewer({ userId }: StoryViewerProps) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [navigate, goNext, goPrev]);
 
+  const handleReaction = (emoji: string) => {
+    setFloatingReaction(emoji);
+    setTimeout(() => setFloatingReaction(null), 700);
+  };
+
+  const handleShare = () => {
+    toast.success("Story link copied!");
+  };
+
   if (!currentStory) {
     navigate({ to: "/" });
     return null;
@@ -74,7 +92,7 @@ export function StoryViewer({ userId }: StoryViewerProps) {
     <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
       {/* Story container */}
       <div
-        className="relative w-full max-w-sm h-full md:h-[90vh] md:rounded-3xl overflow-hidden"
+        className="relative w-full max-w-[420px] h-full md:h-[90vh] md:rounded-3xl overflow-hidden"
         style={{ background: currentStory.imageGradient }}
         onMouseDown={() => setIsPaused(true)}
         onMouseUp={() => setIsPaused(false)}
@@ -123,14 +141,33 @@ export function StoryViewer({ userId }: StoryViewerProps) {
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate({ to: "/" })}
-            className="w-8 h-8 flex items-center justify-center text-white/80 hover:text-white"
-            aria-label="Close story"
-          >
-            <X size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Viewer count */}
+            <div className="flex items-center gap-1 bg-black/30 rounded-full px-2 py-0.5">
+              <Eye size={12} className="text-white/70" />
+              <span className="text-xs text-white/70">
+                {viewerCount[currentIndex]}
+              </span>
+            </div>
+            {/* Share */}
+            <button
+              type="button"
+              onClick={handleShare}
+              className="w-8 h-8 flex items-center justify-center text-white/80 hover:text-white transition-colors"
+              aria-label="Share story"
+            >
+              <Share2 size={18} />
+            </button>
+            {/* Close */}
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/" })}
+              className="w-8 h-8 flex items-center justify-center text-white/80 hover:text-white"
+              aria-label="Close story"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Story content */}
@@ -153,6 +190,22 @@ export function StoryViewer({ userId }: StoryViewerProps) {
           </motion.div>
         </AnimatePresence>
 
+        {/* Floating emoji reaction */}
+        <AnimatePresence>
+          {floatingReaction && (
+            <motion.div
+              key={floatingReaction + Date.now()}
+              initial={{ scale: 1, opacity: 1, y: 0 }}
+              animate={{ scale: 1.6, opacity: 0, y: -40 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30 pointer-events-none text-3xl"
+            >
+              {floatingReaction}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Navigation zones */}
         <button
           type="button"
@@ -167,37 +220,49 @@ export function StoryViewer({ userId }: StoryViewerProps) {
           aria-label="Next story"
         />
 
-        {/* Reaction bar */}
-        <div className="absolute bottom-6 left-4 right-4 z-20 flex items-center gap-3">
-          <div className="flex-1">
-            <GlassInput
-              placeholder="Send a message..."
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              className="text-white text-sm"
-            />
-          </div>
-          <div className="flex gap-2">
-            {["❤️", "🔥", "😮", "😂"].map((emoji) => (
+        {/* Bottom: reply + reaction bar */}
+        <div className="absolute bottom-6 left-4 right-4 z-20 space-y-2">
+          {/* Emoji reactions */}
+          <div className="flex justify-center gap-3">
+            {REACTIONS.map((emoji) => (
               <button
                 type="button"
                 key={emoji}
-                className="text-xl hover:scale-125 transition-transform duration-150"
+                onClick={() => handleReaction(emoji)}
+                className="text-xl hover:scale-125 transition-transform duration-150 active:scale-110"
                 aria-label={`React with ${emoji}`}
               >
                 {emoji}
               </button>
             ))}
           </div>
+          {/* Reply input */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <GlassInput
+                placeholder="Send a message..."
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                className="text-white text-sm"
+              />
+            </div>
+            <button
+              type="button"
+              className="text-white/60 hover:text-white transition-colors"
+              aria-label="Like story"
+            >
+              <Heart size={20} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Nav arrows for desktop */}
+      {/* Desktop nav arrows — positioned outside the card */}
       <button
         type="button"
         onClick={goPrev}
         className={cn(
-          "absolute left-4 md:left-8 z-30 w-10 h-10 glass rounded-full flex items-center justify-center text-white transition-all hover:scale-110",
+          "absolute left-[calc(50%-260px)] z-30 w-10 h-10 glass rounded-full flex items-center justify-center text-white transition-all hover:scale-110",
           currentIndex === 0 && "opacity-30 pointer-events-none",
         )}
         aria-label="Previous"
@@ -207,7 +272,7 @@ export function StoryViewer({ userId }: StoryViewerProps) {
       <button
         type="button"
         onClick={goNext}
-        className="absolute right-4 md:right-8 z-30 w-10 h-10 glass rounded-full flex items-center justify-center text-white transition-all hover:scale-110"
+        className="absolute right-[calc(50%-260px)] z-30 w-10 h-10 glass rounded-full flex items-center justify-center text-white transition-all hover:scale-110"
         aria-label="Next"
       >
         <ChevronRight size={20} />

@@ -2,13 +2,10 @@ import { PostCard } from "@/components/feed/PostCard";
 import { StoryBar } from "@/components/feed/StoryBar";
 import { GlassAvatar } from "@/components/glass/GlassAvatar";
 import { GlassButton } from "@/components/glass/GlassButton";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useApp } from "@/context/AppContext";
 import { MOCK_USERS, formatCount } from "@/data/mockData";
 import { Link } from "@tanstack/react-router";
-import { UserPlus } from "lucide-react";
 import { motion } from "motion/react";
-import { useCallback, useRef } from "react";
 
 function SuggestedUser({
   user,
@@ -58,9 +55,9 @@ export function HomePage() {
   const suggestedUsers = MOCK_USERS.filter((u) => !u.isFollowing).slice(0, 5);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="max-w-[1200px] mx-auto flex min-h-screen">
       {/* Main feed */}
-      <div className="flex-1 max-w-[600px] mx-auto lg:mx-0 px-4 py-6">
+      <div className="flex-1 max-w-[630px] mx-auto lg:mx-0 px-4 py-6">
         <StoryBar />
 
         {sortedPosts.map((post, i) => (
@@ -80,7 +77,7 @@ export function HomePage() {
       </div>
 
       {/* Right sidebar - desktop only */}
-      <div className="hidden xl:block w-[340px] flex-shrink-0 px-6 py-6">
+      <div className="hidden lg:block w-[300px] flex-shrink-0 px-6 py-6">
         <div className="sticky top-6 space-y-6">
           {/* Profile summary */}
           <div className="flex items-center gap-3">

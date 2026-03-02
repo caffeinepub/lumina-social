@@ -58,7 +58,8 @@ export interface MockReel {
   shares: number;
   isLiked: boolean;
   isSaved: boolean;
-  gradient: string;
+  thumbnailUrl: string;
+  videoUrl?: string;
   duration: string;
   views: number;
 }
@@ -93,4 +94,29 @@ export interface MockNotification {
   text: string;
   timestamp: Date;
   isRead: boolean;
+}
+
+export interface MusicTrack {
+  id: string;
+  title: string;
+  artist: string;
+  artworkUrl: string;
+  previewUrl: string;
+}
+
+export interface MockNote {
+  id: string;
+  author: MockUser;
+  text: string; // max 60 chars
+  musicTrack?: MusicTrack;
+  timestamp: Date;
+  expiresAt: Date; // 24h from timestamp
+  replies: { id: string; author: MockUser; text: string; timestamp: Date }[];
+}
+
+export interface MockHighlight {
+  id: string;
+  title: string;
+  coverGradient: string;
+  storyCount: number;
 }

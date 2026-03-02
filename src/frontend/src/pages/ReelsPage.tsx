@@ -1,4 +1,3 @@
-import { GlassAvatar } from "@/components/glass/GlassAvatar";
 import { MOCK_REELS, formatCount } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import type { MockReel } from "@/types";
@@ -8,8 +7,6 @@ import {
   Heart,
   MessageCircle,
   MoreHorizontal,
-  Play,
-  RotateCcw,
   Share2,
   Volume2,
   VolumeX,
@@ -17,7 +14,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
 
-function ReelCard({ reel, isActive }: { reel: MockReel; isActive: boolean }) {
+function ReelCard({ reel }: { reel: MockReel }) {
   const [isLiked, setIsLiked] = useState(reel.isLiked);
   const [isSaved, setIsSaved] = useState(reel.isSaved);
   const [isMuted, setIsMuted] = useState(false);
@@ -32,38 +29,14 @@ function ReelCard({ reel, isActive }: { reel: MockReel; isActive: boolean }) {
   };
 
   return (
-    <div
-      className="relative w-full h-full flex-shrink-0 overflow-hidden rounded-none md:rounded-3xl"
-      style={{ background: reel.gradient }}
-    >
-      {/* Video placeholder */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 opacity-20">
-          <Play size={56} className="text-white fill-white" />
-          {/* Waveform animation */}
-          <div className="flex items-end gap-1 h-8">
-            {Array.from({ length: 16 }, (_, i) => i).map((i) => (
-              <motion.div
-                key={i}
-                className="w-1 bg-white rounded-full"
-                animate={
-                  isActive
-                    ? {
-                        height: [8, Math.random() * 24 + 8, 8],
-                      }
-                    : { height: 8 }
-                }
-                transition={{
-                  duration: 0.8,
-                  repeat: Number.POSITIVE_INFINITY,
-                  delay: i * 0.06,
-                  ease: "easeInOut",
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+    <div className="relative w-full h-full flex-shrink-0 overflow-hidden rounded-none md:rounded-3xl bg-black">
+      {/* Thumbnail background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${reel.thumbnailUrl})` }}
+      />
+      {/* Dark gradient overlay for readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70" />
 
       {/* Double tap like */}
       <AnimatePresence>
@@ -244,13 +217,112 @@ export function ReelsPage() {
         {MOCK_REELS.map((reel, i) => (
           <div
             key={reel.id}
-            className="h-screen w-full snap-start snap-always flex items-center justify-center"
+            className="h-screen w-full snap-start snap-always flex items-center justify-center lg:gap-8"
           >
-            <div className="w-full h-full max-w-sm relative mx-auto">
-              <ReelCard reel={reel} isActive={i === currentIndex} />
+            {/* Reel player */}
+            <div className="w-full h-full max-w-[420px] relative flex-shrink-0">
+              <ReelCard reel={reel} />
             </div>
+
+            {/* Desktop metadata panel */}
+            {i === currentIndex && (
+              <div className="hidden lg:flex flex-col gap-6 w-[280px] flex-shrink-0 py-8">
+                {/* Author */}
+                <div className="flex items-center gap-3">
+                  <Link
+                    to="/profile/$username"
+                    params={{ username: reel.author.username }}
+                  >
+                    <img
+                      src={reel.author.avatarUrl}
+                      alt={reel.author.displayName}
+                      className="w-12 h-12 rounded-full object-cover ring-2 ring-primary/40"
+                    />
+                  </Link>
+                  <div>
+                    <Link
+                      to="/profile/$username"
+                      params={{ username: reel.author.username }}
+                      className="text-sm font-semibold text-white hover:text-primary transition-colors"
+                    >
+                      @{reel.author.username}
+                    </Link>
+                    <p className="text-xs text-white/40">
+                      {formatCount(reel.views)} views · {reel.duration}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Caption */}
+                <div className="glass rounded-2xl p-4">
+                  <p className="text-sm text-white/85 leading-relaxed">
+                    {reel.caption}
+                  </p>
+                </div>
+
+                {/* Audio */}
+                <div className="flex items-center gap-3 glass rounded-xl px-4 py-3">
+                  <div
+                    className="w-8 h-8 rounded-full gradient-bg flex-shrink-0 flex items-center justify-center"
+                    style={{ animation: "spin 4s linear infinite" }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-white/70 truncate">
+                      {reel.audioTrack}
+                    </p>
+                    <p className="text-[10px] text-white/40">Original audio</p>
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div className="flex flex-col gap-3">
+                  <ReelStat
+                    icon={
+                      <Heart
+                        size={20}
+                        className={cn(
+                          reel.isLiked
+                            ? "fill-secondary text-secondary"
+                            : "text-white",
+                        )}
+                      />
+                    }
+                    label={formatCount(reel.likes)}
+                    sublabel="Likes"
+                  />
+                  <ReelStat
+                    icon={<MessageCircle size={20} className="text-white" />}
+                    label={formatCount(reel.comments)}
+                    sublabel="Comments"
+                  />
+                  <ReelStat
+                    icon={<Share2 size={20} className="text-white" />}
+                    label={formatCount(reel.shares)}
+                    sublabel="Shares"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function ReelStat({
+  icon,
+  label,
+  sublabel,
+}: { icon: React.ReactNode; label: string; sublabel: string }) {
+  return (
+    <div className="flex items-center gap-3 glass rounded-xl px-4 py-3 cursor-pointer hover:bg-white/8 transition-colors">
+      <div className="w-10 h-10 rounded-full glass flex items-center justify-center flex-shrink-0">
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-white">{label}</p>
+        <p className="text-xs text-white/40">{sublabel}</p>
       </div>
     </div>
   );

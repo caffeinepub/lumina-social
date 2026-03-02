@@ -4,8 +4,9 @@ import { GlassCard } from "@/components/glass/GlassCard";
 import { GlassInput } from "@/components/glass/GlassInput";
 import { GradientText } from "@/components/glass/GradientText";
 import { Toaster } from "@/components/ui/sonner";
+import { useInternetIdentity } from "@/hooks/useInternetIdentity";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, Shield } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { SiApple, SiGoogle } from "react-icons/si";
@@ -16,6 +17,7 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoggingIn, isAuthenticated } = useAuthContext();
+  const { login: iiLogin, isLoggingIn: iiLoggingIn } = useInternetIdentity();
   const navigate = useNavigate();
 
   if (isAuthenticated) {
@@ -28,7 +30,16 @@ export function LoginPage() {
       toast.error("Please fill in all fields");
       return;
     }
-    login();
+    const success = login(email, password);
+    if (!success) {
+      toast.error("No account found — please sign up first");
+    } else {
+      navigate({ to: "/" });
+    }
+  };
+
+  const handleInternetIdentity = () => {
+    iiLogin();
   };
 
   return (
@@ -75,7 +86,7 @@ export function LoginPage() {
             <GlassInput
               icon={<Mail size={14} />}
               type="email"
-              placeholder="Email or username"
+              placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
@@ -128,22 +139,31 @@ export function LoginPage() {
           </div>
 
           {/* Social logins */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             <GlassButton
               variant="glass"
-              className="w-full text-white/60 hover:text-white"
+              className="w-full text-white/60 hover:text-white text-xs"
               onClick={() => toast("Google sign-in coming soon")}
             >
-              <SiGoogle size={14} />
+              <SiGoogle size={13} />
               Google
             </GlassButton>
             <GlassButton
               variant="glass"
-              className="w-full text-white/60 hover:text-white"
+              className="w-full text-white/60 hover:text-white text-xs"
               onClick={() => toast("Apple sign-in coming soon")}
             >
-              <SiApple size={14} />
+              <SiApple size={13} />
               Apple
+            </GlassButton>
+            <GlassButton
+              variant="glass"
+              className="w-full text-white/60 hover:text-white text-xs"
+              onClick={handleInternetIdentity}
+              disabled={iiLoggingIn}
+            >
+              <Shield size={13} />
+              {iiLoggingIn ? "..." : "ICP"}
             </GlassButton>
           </div>
 

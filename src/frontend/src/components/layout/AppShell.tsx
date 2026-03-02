@@ -39,7 +39,7 @@ export function AppShell() {
       </div>
 
       {/* Main content */}
-      <main className="lg:ml-[240px] pb-20 lg:pb-0 min-h-screen">
+      <main className="lg:ml-[260px] pb-20 lg:pb-0 min-h-screen">
         <Outlet />
       </main>
 

@@ -1,6 +1,7 @@
 import { useAuthContext } from "@/components/auth/AuthContext";
 import { GradientText } from "@/components/glass/GradientText";
 import { useApp } from "@/context/AppContext";
+import { MOCK_USERS } from "@/data/mockData";
 import { useIsAdmin } from "@/hooks/useBackend";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
@@ -50,7 +51,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-[240px] z-40 glass-heavy border-r border-white/8 flex flex-col py-6 px-4">
+    <aside className="fixed left-0 top-0 h-full w-[260px] z-40 glass-heavy border-r border-white/8 flex flex-col py-6 px-4">
       {/* Logo */}
       <div className="mb-8 px-2">
         <Link to="/" className="flex items-center gap-2.5">
@@ -117,11 +118,28 @@ export function Sidebar() {
         </button>
       </nav>
 
+      {/* User mini-profile */}
+      <div className="mt-4 px-3 py-3 glass rounded-xl flex items-center gap-3">
+        <img
+          src={MOCK_USERS[0].avatarUrl}
+          alt={MOCK_USERS[0].displayName}
+          className="w-8 h-8 rounded-full object-cover ring-1 ring-primary/40 flex-shrink-0"
+        />
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold text-white truncate">
+            {MOCK_USERS[0].username}
+          </p>
+          <p className="text-[10px] text-white/40 truncate">
+            {MOCK_USERS[0].displayName}
+          </p>
+        </div>
+      </div>
+
       {/* Logout */}
       <button
         type="button"
         onClick={logout}
-        className="flex items-center gap-3 px-3 py-3 rounded-xl text-white/40 hover:text-destructive hover:bg-destructive/10 transition-all duration-200 mt-4"
+        className="flex items-center gap-3 px-3 py-3 rounded-xl text-white/40 hover:text-destructive hover:bg-destructive/10 transition-all duration-200 mt-1"
       >
         <LogOut size={18} />
         <span className="text-sm">Sign out</span>

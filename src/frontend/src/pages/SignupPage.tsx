@@ -1,11 +1,9 @@
-import { Gender } from "@/backend.d";
 import { useAuthContext } from "@/components/auth/AuthContext";
 import { GlassButton } from "@/components/glass/GlassButton";
 import { GlassCard } from "@/components/glass/GlassCard";
 import { GlassInput } from "@/components/glass/GlassInput";
 import { GradientText } from "@/components/glass/GradientText";
 import { Toaster } from "@/components/ui/sonner";
-import { useSaveProfile } from "@/hooks/useBackend";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AtSign, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import { motion } from "motion/react";
@@ -18,8 +16,8 @@ export function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoggingIn, isAuthenticated } = useAuthContext();
-  const saveProfile = useSaveProfile();
+  const [isPending, setIsPending] = useState(false);
+  const { signup, isAuthenticated } = useAuthContext();
   const navigate = useNavigate();
 
   if (isAuthenticated) {
@@ -36,7 +34,23 @@ export function SignupPage() {
       toast.error("Username cannot contain spaces");
       return;
     }
-    login();
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    setIsPending(true);
+    try {
+      signup({
+        username,
+        email,
+        displayName,
+        bio: "",
+        avatarUrl: "https://i.pravatar.cc/150?img=25",
+      });
+      navigate({ to: "/" });
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
@@ -92,7 +106,7 @@ export function SignupPage() {
             <GlassInput
               icon={<Lock size={14} />}
               type={showPassword ? "text" : "password"}
-              placeholder="Password"
+              placeholder="Password (min 6 characters)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
@@ -106,6 +120,7 @@ export function SignupPage() {
                   {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               }
+              onKeyDown={(e) => e.key === "Enter" && handleSignup()}
             />
 
             <p className="text-xs text-white/30 px-1">
@@ -116,12 +131,10 @@ export function SignupPage() {
               variant="gradient"
               className="w-full"
               onClick={handleSignup}
-              disabled={isLoggingIn || saveProfile.isPending}
+              disabled={isPending}
               glow
             >
-              {isLoggingIn || saveProfile.isPending
-                ? "Creating account..."
-                : "Create Account"}
+              {isPending ? "Creating account..." : "Create Account"}
             </GlassButton>
           </div>
 

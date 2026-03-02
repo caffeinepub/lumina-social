@@ -137,14 +137,12 @@ export function PostCard({ post }: PostCardProps) {
         onClick={handleDoubleTap}
         aria-label="Double tap to like"
       >
-        <div
-          className="w-full h-full flex items-center justify-center"
-          style={{ background: post.imageUrl }}
-        >
-          <div className="text-white/10 text-6xl font-display font-bold select-none">
-            {post.author.username.charAt(0).toUpperCase()}
-          </div>
-        </div>
+        <img
+          src={post.imageUrl}
+          alt={post.caption}
+          className="w-full aspect-square object-cover"
+          loading="lazy"
+        />
 
         {/* Double tap heart */}
         <AnimatePresence>

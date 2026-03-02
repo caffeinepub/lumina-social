@@ -4,7 +4,12 @@ import { GlassCard } from "@/components/glass/GlassCard";
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApp } from "@/context/AppContext";
-import { MOCK_STORIES, MOCK_USERS, formatCount } from "@/data/mockData";
+import {
+  MOCK_HIGHLIGHTS,
+  MOCK_STORIES,
+  MOCK_USERS,
+  formatCount,
+} from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
@@ -14,6 +19,7 @@ import {
   Lock,
   MessageCircle,
   MoreHorizontal,
+  Plus,
   Settings,
   Tag,
   UserCheck,
@@ -22,35 +28,6 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
-
-// Story highlights
-const HIGHLIGHTS = [
-  {
-    id: "h1",
-    label: "Tokyo",
-    gradient: "linear-gradient(135deg, #6B21A8, #EC4899)",
-  },
-  {
-    id: "h2",
-    label: "Studio",
-    gradient: "linear-gradient(135deg, #0EA5E9, #6366F1)",
-  },
-  {
-    id: "h3",
-    label: "Work",
-    gradient: "linear-gradient(135deg, #F59E0B, #EF4444)",
-  },
-  {
-    id: "h4",
-    label: "Travel",
-    gradient: "linear-gradient(135deg, #10B981, #3B82F6)",
-  },
-  {
-    id: "h5",
-    label: "Friends",
-    gradient: "linear-gradient(135deg, #8B5CF6, #06B6D4)",
-  },
-];
 
 function PostGrid({ posts }: { posts: ReturnType<typeof useApp>["posts"] }) {
   const [selectedPost, setSelectedPost] = useState<string | null>(null);
@@ -286,23 +263,37 @@ export function ProfilePage() {
 
         {/* Story highlights */}
         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
-          {HIGHLIGHTS.map((h) => (
+          {/* Add highlights button */}
+          <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+            <button
+              type="button"
+              className="w-16 h-16 rounded-full glass border border-dashed border-white/30 flex items-center justify-center hover:border-white/50 hover:bg-white/5 transition-all duration-200"
+              aria-label="Add highlight"
+            >
+              <Plus size={20} className="text-white/50" />
+            </button>
+            <span className="text-xs text-white/40">New</span>
+          </div>
+
+          {MOCK_HIGHLIGHTS.map((h) => (
             <div
               key={h.id}
-              className="flex flex-col items-center gap-1.5 flex-shrink-0"
+              className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer group"
             >
               <div
-                className="w-16 h-16 rounded-full p-0.5"
-                style={{ background: h.gradient }}
+                className="w-16 h-16 rounded-full p-0.5 group-hover:scale-105 transition-transform duration-200"
+                style={{ background: h.coverGradient }}
               >
                 <div className="w-full h-full rounded-full bg-background p-0.5">
                   <div
-                    className="w-full h-full rounded-full"
-                    style={{ background: h.gradient, opacity: 0.7 }}
+                    className="w-full h-full rounded-full flex items-center justify-center"
+                    style={{ background: h.coverGradient, opacity: 0.8 }}
                   />
                 </div>
               </div>
-              <span className="text-xs text-white/50">{h.label}</span>
+              <span className="text-xs text-white/50 group-hover:text-white/70 transition-colors">
+                {h.title}
+              </span>
             </div>
           ))}
         </div>

@@ -1,7 +1,7 @@
 import { GlassAvatar } from "@/components/glass/GlassAvatar";
 import { GlassButton } from "@/components/glass/GlassButton";
 import { GlassInput } from "@/components/glass/GlassInput";
-import { Badge } from "@/components/ui/badge";
+import { NotesPanel } from "@/components/notes/NotesPanel";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   MOCK_CONVERSATIONS,
@@ -18,7 +18,6 @@ import {
   MessageCircle,
   Mic,
   Phone,
-  Plus,
   Search,
   Send,
   Smile,
@@ -56,39 +55,6 @@ function TypingIndicator() {
         />
       ))}
     </div>
-  );
-}
-
-function NotesBar() {
-  return (
-    <ScrollArea className="w-full border-b border-white/8 px-4 py-3">
-      <div className="flex gap-3">
-        {MOCK_USERS.slice(0, 5).map((user, i) => (
-          <div
-            key={user.id}
-            className="flex flex-col items-center gap-1 flex-shrink-0"
-          >
-            <div className="relative">
-              <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-primary/30">
-                <img
-                  src={user.avatarUrl}
-                  alt={user.displayName}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {i === 0 && (
-                <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full gradient-bg flex items-center justify-center">
-                  <Plus size={9} className="text-white" />
-                </div>
-              )}
-            </div>
-            <span className="text-[10px] text-white/40 w-12 text-center truncate">
-              {user.username}
-            </span>
-          </div>
-        ))}
-      </div>
-    </ScrollArea>
   );
 }
 
@@ -167,7 +133,7 @@ export function MessagesPage() {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
-      <NotesBar />
+      <NotesPanel />
       <ScrollArea className="flex-1">
         <div className="py-2">
           {filteredConvs.map((conv) => {
@@ -399,7 +365,7 @@ export function MessagesPage() {
       {/* Conversation list */}
       <div
         className={cn(
-          "w-full lg:w-[360px] flex-shrink-0 border-r border-white/8 glass-heavy",
+          "w-full lg:w-[340px] flex-shrink-0 border-r border-white/8 glass-heavy",
           selectedConv ? "hidden lg:flex lg:flex-col" : "flex flex-col",
         )}
       >

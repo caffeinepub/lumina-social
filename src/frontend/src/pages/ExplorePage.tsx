@@ -156,7 +156,7 @@ export function ExplorePage() {
             <h2 className="text-sm font-semibold text-white/60 mb-3">
               Explore
             </h2>
-            <div className="grid grid-cols-3 gap-1">
+            <div className="grid grid-cols-3 lg:grid-cols-4 gap-1">
               {posts.map((post, i) => (
                 <motion.div
                   key={post.id}
@@ -228,7 +228,7 @@ export function ExplorePage() {
               <h2 className="text-sm font-semibold text-white/60 mb-3">
                 Posts
               </h2>
-              <div className="grid grid-cols-3 gap-1">
+              <div className="grid grid-cols-3 lg:grid-cols-4 gap-1">
                 {filteredPosts.map((post) => (
                   <div
                     key={post.id}

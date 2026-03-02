@@ -1,7 +1,9 @@
 import type {
   MockComment,
   MockConversation,
+  MockHighlight,
   MockMessage,
+  MockNote,
   MockNotification,
   MockPost,
   MockReel,
@@ -9,15 +11,13 @@ import type {
   MockUser,
 } from "@/types";
 
-const DICEBEAR_BASE = "https://api.dicebear.com/7.x/avataaars/svg?seed=";
-
 export const MOCK_USERS: MockUser[] = [
   {
     id: "1",
     username: "aurora.lens",
     displayName: "Aurora Chen",
     bio: "Chasing light, capturing moments ✨ Tokyo based photographer",
-    avatarUrl: `${DICEBEAR_BASE}aurora`,
+    avatarUrl: "https://i.pravatar.cc/150?img=1",
     websiteUrl: "aurora.photography",
     isPrivate: false,
     followersCount: 48200,
@@ -31,7 +31,7 @@ export const MOCK_USERS: MockUser[] = [
     username: "neon.nomad",
     displayName: "Marcus Webb",
     bio: "Digital wanderer 🌐 Building worlds, one pixel at a time",
-    avatarUrl: `${DICEBEAR_BASE}marcus`,
+    avatarUrl: "https://i.pravatar.cc/150?img=3",
     websiteUrl: "neon-nomad.io",
     isPrivate: false,
     followersCount: 23100,
@@ -45,7 +45,7 @@ export const MOCK_USERS: MockUser[] = [
     username: "velvet.sky",
     displayName: "Sofia Reyes",
     bio: "Fashion & Art Director | Madrid → Paris 🌸",
-    avatarUrl: `${DICEBEAR_BASE}sofia`,
+    avatarUrl: "https://i.pravatar.cc/150?img=5",
     websiteUrl: "velvetsky.studio",
     isPrivate: false,
     followersCount: 91500,
@@ -59,7 +59,7 @@ export const MOCK_USERS: MockUser[] = [
     username: "echo.frames",
     displayName: "Aiden Park",
     bio: "Filmmaker | Storyteller 🎬 Seoul native, world traveler",
-    avatarUrl: `${DICEBEAR_BASE}aiden`,
+    avatarUrl: "https://i.pravatar.cc/150?img=8",
     websiteUrl: "echoframes.co",
     isPrivate: false,
     followersCount: 15800,
@@ -73,7 +73,7 @@ export const MOCK_USERS: MockUser[] = [
     username: "luna.abstract",
     displayName: "Luna Nakamura",
     bio: "Digital artist & 3D sculptor 🎨 NFT creator",
-    avatarUrl: `${DICEBEAR_BASE}luna`,
+    avatarUrl: "https://i.pravatar.cc/150?img=10",
     websiteUrl: "luna-art.xyz",
     isPrivate: false,
     followersCount: 67300,
@@ -87,7 +87,7 @@ export const MOCK_USERS: MockUser[] = [
     username: "prism.collective",
     displayName: "Prism Creative",
     bio: "Design collective pushing boundaries 🔺 Open to collabs",
-    avatarUrl: `${DICEBEAR_BASE}prism`,
+    avatarUrl: "https://i.pravatar.cc/150?img=12",
     websiteUrl: "prism.design",
     isPrivate: false,
     followersCount: 34500,
@@ -101,7 +101,7 @@ export const MOCK_USERS: MockUser[] = [
     username: "drift.code",
     displayName: "Kai Sorensen",
     bio: "Backend engineer by day, synth composer by night 🎵",
-    avatarUrl: `${DICEBEAR_BASE}kai`,
+    avatarUrl: "https://i.pravatar.cc/150?img=14",
     websiteUrl: "drift.dev",
     isPrivate: false,
     followersCount: 8900,
@@ -115,7 +115,7 @@ export const MOCK_USERS: MockUser[] = [
     username: "zenith.flora",
     displayName: "Mia Laurent",
     bio: "Botanist & minimalist photographer 🌿 Plants over people",
-    avatarUrl: `${DICEBEAR_BASE}mia`,
+    avatarUrl: "https://i.pravatar.cc/150?img=16",
     websiteUrl: "zenithflora.co",
     isPrivate: true,
     followersCount: 12400,
@@ -124,21 +124,6 @@ export const MOCK_USERS: MockUser[] = [
     isFollowing: false,
     isVerified: false,
   },
-];
-
-const POST_GRADIENTS = [
-  "linear-gradient(135deg, oklch(0.25 0.15 290), oklch(0.15 0.12 320))",
-  "linear-gradient(135deg, oklch(0.2 0.1 200), oklch(0.15 0.08 240))",
-  "linear-gradient(135deg, oklch(0.3 0.18 30), oklch(0.2 0.15 0))",
-  "linear-gradient(135deg, oklch(0.25 0.12 150), oklch(0.18 0.1 180))",
-  "linear-gradient(135deg, oklch(0.22 0.14 270), oklch(0.16 0.12 300))",
-  "linear-gradient(135deg, oklch(0.28 0.16 340), oklch(0.2 0.14 310))",
-  "linear-gradient(135deg, oklch(0.24 0.1 60), oklch(0.18 0.08 40))",
-  "linear-gradient(135deg, oklch(0.2 0.13 220), oklch(0.14 0.1 250))",
-  "linear-gradient(135deg, oklch(0.26 0.14 120), oklch(0.18 0.12 150))",
-  "linear-gradient(135deg, oklch(0.22 0.16 280), oklch(0.16 0.14 260))",
-  "linear-gradient(135deg, oklch(0.3 0.12 190), oklch(0.22 0.1 170))",
-  "linear-gradient(135deg, oklch(0.25 0.18 350), oklch(0.18 0.15 330))",
 ];
 
 const MOCK_COMMENTS: MockComment[] = [
@@ -172,7 +157,7 @@ export const MOCK_POSTS: MockPost[] = [
   {
     id: "p1",
     author: MOCK_USERS[0],
-    imageUrl: POST_GRADIENTS[0],
+    imageUrl: "https://picsum.photos/seed/lumina_p1/600/600",
     caption:
       "Golden hour in Shinjuku 🌆 The city never stops breathing. Caught this moment between two worlds — neon signs waking up as sunlight dies.",
     likes: 4821,
@@ -188,7 +173,7 @@ export const MOCK_POSTS: MockPost[] = [
   {
     id: "p2",
     author: MOCK_USERS[2],
-    imageUrl: POST_GRADIENTS[1],
+    imageUrl: "https://picsum.photos/seed/lumina_p2/600/600",
     caption:
       "New collection drop 🌸 Fashion is the armor to survive everyday life. This piece took 3 weeks to conceptualize.",
     likes: 9234,
@@ -204,7 +189,7 @@ export const MOCK_POSTS: MockPost[] = [
   {
     id: "p3",
     author: MOCK_USERS[4],
-    imageUrl: POST_GRADIENTS[2],
+    imageUrl: "https://picsum.photos/seed/lumina_p3/600/600",
     caption:
       "3D sculpture series: Fragments of Time 🎨 Each piece represents a memory dissolving into abstraction.",
     likes: 6782,
@@ -219,7 +204,7 @@ export const MOCK_POSTS: MockPost[] = [
   {
     id: "p4",
     author: MOCK_USERS[1],
-    imageUrl: POST_GRADIENTS[3],
+    imageUrl: "https://picsum.photos/seed/lumina_p4/600/600",
     caption:
       "When code becomes art 💻✨ Built a generative algorithm that translates sound waves into visual geometry. Mesmerizing to watch.",
     likes: 2341,
@@ -234,7 +219,7 @@ export const MOCK_POSTS: MockPost[] = [
   {
     id: "p5",
     author: MOCK_USERS[5],
-    imageUrl: POST_GRADIENTS[4],
+    imageUrl: "https://picsum.photos/seed/lumina_p5/600/600",
     caption:
       "Identities in flux ◈ New visual identity project for a fintech startup. Geometric precision meets organic flow.",
     likes: 3456,
@@ -250,7 +235,7 @@ export const MOCK_POSTS: MockPost[] = [
   {
     id: "p6",
     author: MOCK_USERS[3],
-    imageUrl: POST_GRADIENTS[5],
+    imageUrl: "https://picsum.photos/seed/lumina_p6/600/600",
     caption:
       "Behind the lens of our latest short film 🎬 Practical effects using colored gels and fog machines. No CGI, pure in-camera magic.",
     likes: 1876,
@@ -266,7 +251,7 @@ export const MOCK_POSTS: MockPost[] = [
   {
     id: "p7",
     author: MOCK_USERS[6],
-    imageUrl: POST_GRADIENTS[6],
+    imageUrl: "https://picsum.photos/seed/lumina_p7/600/600",
     caption:
       "Late night coding sessions hit different with the right playlist 🎵 Sharing my Synthwave focus mix on my profile.",
     likes: 892,
@@ -281,7 +266,7 @@ export const MOCK_POSTS: MockPost[] = [
   {
     id: "p8",
     author: MOCK_USERS[7],
-    imageUrl: POST_GRADIENTS[7],
+    imageUrl: "https://picsum.photos/seed/lumina_p8/600/600",
     caption:
       "Monstera deliciosa under diffused studio light 🌿 Plant photography is an exercise in patience and stillness.",
     likes: 2108,
@@ -325,15 +310,6 @@ export const MOCK_STORIES: MockStory[] = MOCK_USERS.map((user, i) => ({
   duration: 5000,
 }));
 
-export const REEL_GRADIENTS = [
-  "linear-gradient(180deg, oklch(0.18 0.15 290), oklch(0.1 0.1 310))",
-  "linear-gradient(180deg, oklch(0.15 0.12 200), oklch(0.1 0.08 220))",
-  "linear-gradient(180deg, oklch(0.2 0.14 30), oklch(0.12 0.1 10))",
-  "linear-gradient(180deg, oklch(0.18 0.13 150), oklch(0.1 0.1 170))",
-  "linear-gradient(180deg, oklch(0.16 0.15 280), oklch(0.1 0.12 300))",
-  "linear-gradient(180deg, oklch(0.2 0.16 340), oklch(0.12 0.13 320))",
-];
-
 export const MOCK_REELS: MockReel[] = [
   {
     id: "r1",
@@ -345,7 +321,7 @@ export const MOCK_REELS: MockReel[] = [
     shares: 1240,
     isLiked: false,
     isSaved: false,
-    gradient: REEL_GRADIENTS[0],
+    thumbnailUrl: "https://picsum.photos/seed/lumina_r1/420/748",
     duration: "0:28",
     views: 148200,
   },
@@ -359,7 +335,7 @@ export const MOCK_REELS: MockReel[] = [
     shares: 8900,
     isLiked: true,
     isSaved: false,
-    gradient: REEL_GRADIENTS[1],
+    thumbnailUrl: "https://picsum.photos/seed/lumina_r2/420/748",
     duration: "0:30",
     views: 892000,
   },
@@ -373,7 +349,7 @@ export const MOCK_REELS: MockReel[] = [
     shares: 2300,
     isLiked: false,
     isSaved: true,
-    gradient: REEL_GRADIENTS[2],
+    thumbnailUrl: "https://picsum.photos/seed/lumina_r3/420/748",
     duration: "0:30",
     views: 234500,
   },
@@ -387,7 +363,7 @@ export const MOCK_REELS: MockReel[] = [
     shares: 890,
     isLiked: false,
     isSaved: false,
-    gradient: REEL_GRADIENTS[3],
+    thumbnailUrl: "https://picsum.photos/seed/lumina_r4/420/748",
     duration: "0:45",
     views: 98400,
   },
@@ -401,7 +377,7 @@ export const MOCK_REELS: MockReel[] = [
     shares: 456,
     isLiked: true,
     isSaved: false,
-    gradient: REEL_GRADIENTS[4],
+    thumbnailUrl: "https://picsum.photos/seed/lumina_r5/420/748",
     duration: "0:60",
     views: 67300,
   },
@@ -561,7 +537,7 @@ export const MOCK_NOTIFICATIONS: MockNotification[] = [
     id: "n1",
     type: "like",
     actor: MOCK_USERS[2],
-    postThumbnail: POST_GRADIENTS[0],
+    postThumbnail: "https://picsum.photos/seed/lumina_p1/60/60",
     text: "liked your photo",
     timestamp: new Date(Date.now() - 300000),
     isRead: false,
@@ -578,7 +554,7 @@ export const MOCK_NOTIFICATIONS: MockNotification[] = [
     id: "n3",
     type: "comment",
     actor: MOCK_USERS[1],
-    postThumbnail: POST_GRADIENTS[1],
+    postThumbnail: "https://picsum.photos/seed/lumina_p2/60/60",
     text: 'commented: "This is absolutely stunning! 🔥"',
     timestamp: new Date(Date.now() - 1800000),
     isRead: false,
@@ -587,7 +563,7 @@ export const MOCK_NOTIFICATIONS: MockNotification[] = [
     id: "n4",
     type: "mention",
     actor: MOCK_USERS[5],
-    postThumbnail: POST_GRADIENTS[2],
+    postThumbnail: "https://picsum.photos/seed/lumina_p3/60/60",
     text: "mentioned you in a comment",
     timestamp: new Date(Date.now() - 3600000),
     isRead: true,
@@ -596,7 +572,7 @@ export const MOCK_NOTIFICATIONS: MockNotification[] = [
     id: "n5",
     type: "like",
     actor: MOCK_USERS[0],
-    postThumbnail: POST_GRADIENTS[3],
+    postThumbnail: "https://picsum.photos/seed/lumina_p4/60/60",
     text: "liked your reel",
     timestamp: new Date(Date.now() - 7200000),
     isRead: true,
@@ -613,7 +589,7 @@ export const MOCK_NOTIFICATIONS: MockNotification[] = [
     id: "n7",
     type: "like",
     actor: MOCK_USERS[6],
-    postThumbnail: POST_GRADIENTS[4],
+    postThumbnail: "https://picsum.photos/seed/lumina_p5/60/60",
     text: "liked your photo",
     timestamp: new Date(Date.now() - 86400000),
     isRead: true,
@@ -637,6 +613,167 @@ export const TRENDING_HASHTAGS = [
   { tag: "#3dart", posts: 3200000 },
   { tag: "#synthwave", posts: 1450000 },
   { tag: "#botanical", posts: 5600000 },
+];
+
+export const MOCK_NOTES: MockNote[] = [
+  {
+    id: "note1",
+    author: MOCK_USERS[0],
+    text: "golden hour was unreal today 🌅",
+    musicTrack: {
+      id: "t1",
+      title: "Midnight City",
+      artist: "M83",
+      artworkUrl:
+        "https://is1-ssl.mzstatic.com/image/thumb/Music/v4/c3/77/44/c3774459-ed3d-89f7-a8e3-b8a5ef1b1d1a/source/100x100bb.jpg",
+      previewUrl:
+        "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/bc/2e/e4/bc2ee4f3-0ef5-ab98-c902-36bfac37fe4d/mzaf_4490609827460326667.plus.aac.p.m4a",
+    },
+    timestamp: new Date(Date.now() - 2 * 3600000),
+    expiresAt: new Date(Date.now() - 2 * 3600000 + 24 * 3600000),
+    replies: [
+      {
+        id: "nr1",
+        author: MOCK_USERS[1],
+        text: "stunning shot! 🔥",
+        timestamp: new Date(Date.now() - 1 * 3600000),
+      },
+    ],
+  },
+  {
+    id: "note2",
+    author: MOCK_USERS[1],
+    text: "new generative piece dropping tonight 👾",
+    timestamp: new Date(Date.now() - 4 * 3600000),
+    expiresAt: new Date(Date.now() - 4 * 3600000 + 24 * 3600000),
+    replies: [],
+  },
+  {
+    id: "note3",
+    author: MOCK_USERS[2],
+    text: "Paris fashion week energy is immaculate ✨",
+    musicTrack: {
+      id: "t2",
+      title: "Bejeweled",
+      artist: "Taylor Swift",
+      artworkUrl:
+        "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/25/9f/4b/259f4b41-f16d-1e31-9cd8-e7a5a879b7d3/source/100x100bb.jpg",
+      previewUrl:
+        "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview112/v4/5a/64/c2/5a64c2e4-3b1c-3b15-92a2-2d08e3ae7890/mzaf_13247374449451584718.plus.aac.p.m4a",
+    },
+    timestamp: new Date(Date.now() - 6 * 3600000),
+    expiresAt: new Date(Date.now() - 6 * 3600000 + 24 * 3600000),
+    replies: [
+      {
+        id: "nr2",
+        author: MOCK_USERS[0],
+        text: "jealous!! bring me back something 🙏",
+        timestamp: new Date(Date.now() - 5 * 3600000),
+      },
+      {
+        id: "nr3",
+        author: MOCK_USERS[4],
+        text: "living the dream 🌸",
+        timestamp: new Date(Date.now() - 4.5 * 3600000),
+      },
+    ],
+  },
+  {
+    id: "note4",
+    author: MOCK_USERS[3],
+    text: "filming all night, coffee is life rn ☕",
+    timestamp: new Date(Date.now() - 8 * 3600000),
+    expiresAt: new Date(Date.now() - 8 * 3600000 + 24 * 3600000),
+    replies: [],
+  },
+  {
+    id: "note5",
+    author: MOCK_USERS[4],
+    text: "3D renders looking insane this week 🎨",
+    musicTrack: {
+      id: "t3",
+      title: "Holdin On",
+      artist: "Flume",
+      artworkUrl:
+        "https://is1-ssl.mzstatic.com/image/thumb/Music/v4/3f/60/c2/3f60c21c-6b3f-8f5a-1b93-89e4b3cc4a23/source/100x100bb.jpg",
+      previewUrl:
+        "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview/v4/3f/60/c2/3f60c21c-6b3f-8f5a-1b93-89e4b3cc4a23/mzaf_example.plus.aac.p.m4a",
+    },
+    timestamp: new Date(Date.now() - 10 * 3600000),
+    expiresAt: new Date(Date.now() - 10 * 3600000 + 24 * 3600000),
+    replies: [
+      {
+        id: "nr4",
+        author: MOCK_USERS[5],
+        text: "send me the files! would love to collab",
+        timestamp: new Date(Date.now() - 9 * 3600000),
+      },
+    ],
+  },
+  {
+    id: "note6",
+    author: MOCK_USERS[5],
+    text: "design brief approved — let's gooo 🔺",
+    timestamp: new Date(Date.now() - 14 * 3600000),
+    expiresAt: new Date(Date.now() - 14 * 3600000 + 24 * 3600000),
+    replies: [],
+  },
+  {
+    id: "note7",
+    author: MOCK_USERS[6],
+    text: "synthwave mix almost done, just need vocals 🎵",
+    musicTrack: {
+      id: "t4",
+      title: "Lo-fi Study Beats",
+      artist: "Chillhop Music",
+      artworkUrl:
+        "https://is1-ssl.mzstatic.com/image/thumb/Music/v4/ab/cd/ef/abcdef12-3456-7890-abcd-ef1234567890/source/100x100bb.jpg",
+      previewUrl: "",
+    },
+    timestamp: new Date(Date.now() - 20 * 3600000),
+    expiresAt: new Date(Date.now() - 20 * 3600000 + 24 * 3600000),
+    replies: [
+      {
+        id: "nr5",
+        author: MOCK_USERS[3],
+        text: "I can lay down some vocals if you want!",
+        timestamp: new Date(Date.now() - 18 * 3600000),
+      },
+    ],
+  },
+];
+
+export const MOCK_HIGHLIGHTS: MockHighlight[] = [
+  {
+    id: "h1",
+    title: "Tokyo",
+    coverGradient: "linear-gradient(135deg, #6B21A8, #EC4899)",
+    storyCount: 12,
+  },
+  {
+    id: "h2",
+    title: "Studio",
+    coverGradient: "linear-gradient(135deg, #0EA5E9, #6366F1)",
+    storyCount: 8,
+  },
+  {
+    id: "h3",
+    title: "Travel",
+    coverGradient: "linear-gradient(135deg, #F59E0B, #EF4444)",
+    storyCount: 23,
+  },
+  {
+    id: "h4",
+    title: "Art",
+    coverGradient: "linear-gradient(135deg, #10B981, #3B82F6)",
+    storyCount: 15,
+  },
+  {
+    id: "h5",
+    title: "Shoots",
+    coverGradient: "linear-gradient(135deg, #8B5CF6, #06B6D4)",
+    storyCount: 9,
+  },
 ];
 
 export function formatRelativeTime(date: Date): string {
