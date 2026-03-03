@@ -23,6 +23,31 @@
   font-display: swap;
 }
 
+/* ─── Mobile web optimization ─────────────────────────────────────────── */
+
+/* Prevent horizontal overflow on mobile */
+html,
+body {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Smooth scroll on iOS */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Better tap highlight */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe area support for notched phones */
+.safe-area-pb {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
 @layer base {
   :root {
     --radius: 1rem;

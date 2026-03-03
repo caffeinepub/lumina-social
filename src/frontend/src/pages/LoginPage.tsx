@@ -4,26 +4,34 @@ import { GlassCard } from "@/components/glass/GlassCard";
 import { GlassInput } from "@/components/glass/GlassInput";
 import { GradientText } from "@/components/glass/GradientText";
 import { Toaster } from "@/components/ui/sonner";
-import { useInternetIdentity } from "@/hooks/useInternetIdentity";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff, Lock, Mail, Shield } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
-import { SiApple, SiGoogle } from "react-icons/si";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoggingIn, isAuthenticated } = useAuthContext();
-  const { login: iiLogin, isLoggingIn: iiLoggingIn } = useInternetIdentity();
+  const {
+    login,
+    isLoggingIn,
+    isAuthenticated,
+    iiLogin,
+    iiIsLoggingIn,
+    iiIsInitializing,
+  } = useAuthContext();
   const navigate = useNavigate();
 
-  if (isAuthenticated) {
-    navigate({ to: "/" });
-    return null;
-  }
+  // Navigate when authenticated (either path)
+  useEffect(() => {
+    if (isAuthenticated) {
+      void navigate({ to: "/" });
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (isAuthenticated) return null;
 
   const handleLogin = () => {
     if (!email || !password) {
@@ -34,11 +42,11 @@ export function LoginPage() {
     if (!success) {
       toast.error("No account found — please sign up first");
     } else {
-      navigate({ to: "/" });
+      void navigate({ to: "/" });
     }
   };
 
-  const handleInternetIdentity = () => {
+  const handleIILogin = () => {
     iiLogin();
   };
 
@@ -81,7 +89,48 @@ export function LoginPage() {
             </p>
           </div>
 
-          {/* Form */}
+          {/* Internet Identity Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.4 }}
+            className="mb-4"
+          >
+            <GlassButton
+              variant="gradient"
+              className="w-full relative overflow-hidden"
+              onClick={handleIILogin}
+              disabled={iiIsLoggingIn || iiIsInitializing}
+              glow
+              data-ocid="login.ii_button"
+            >
+              {iiIsLoggingIn ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Connecting to Internet Identity...</span>
+                </>
+              ) : (
+                <>
+                  <Shield size={16} className="flex-shrink-0" />
+                  <span>Sign in with Internet Identity</span>
+                </>
+              )}
+            </GlassButton>
+            <p className="text-center text-xs text-white/30 mt-2">
+              Secure, passwordless login via ICP
+            </p>
+          </motion.div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="text-xs text-white/30 uppercase tracking-widest">
+              or
+            </span>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+
+          {/* Email/Password Form */}
           <div className="space-y-4">
             <GlassInput
               icon={<Mail size={14} />}
@@ -90,6 +139,7 @@ export function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
+              data-ocid="login.input"
             />
             <GlassInput
               icon={<Lock size={14} />}
@@ -126,44 +176,9 @@ export function LoginPage() {
               onClick={handleLogin}
               disabled={isLoggingIn}
               glow
+              data-ocid="login.submit_button"
             >
               {isLoggingIn ? "Signing in..." : "Sign In"}
-            </GlassButton>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="text-xs text-white/30">or continue with</span>
-            <div className="flex-1 h-px bg-white/10" />
-          </div>
-
-          {/* Social logins */}
-          <div className="grid grid-cols-3 gap-2">
-            <GlassButton
-              variant="glass"
-              className="w-full text-white/60 hover:text-white text-xs"
-              onClick={() => toast("Google sign-in coming soon")}
-            >
-              <SiGoogle size={13} />
-              Google
-            </GlassButton>
-            <GlassButton
-              variant="glass"
-              className="w-full text-white/60 hover:text-white text-xs"
-              onClick={() => toast("Apple sign-in coming soon")}
-            >
-              <SiApple size={13} />
-              Apple
-            </GlassButton>
-            <GlassButton
-              variant="glass"
-              className="w-full text-white/60 hover:text-white text-xs"
-              onClick={handleInternetIdentity}
-              disabled={iiLoggingIn}
-            >
-              <Shield size={13} />
-              {iiLoggingIn ? "..." : "ICP"}
             </GlassButton>
           </div>
 
@@ -173,6 +188,7 @@ export function LoginPage() {
             <Link
               to="/signup"
               className="text-primary hover:text-primary/80 font-medium transition-colors"
+              data-ocid="login.link"
             >
               Sign up
             </Link>

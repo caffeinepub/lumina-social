@@ -2,9 +2,9 @@ import { GlassInput } from "@/components/glass/GlassInput";
 import { formatRelativeTime } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import type { MockComment } from "@/types";
-import { Heart, Send, X } from "lucide-react";
+import { Heart, Reply, Send, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 interface CommentDrawerProps {
   isOpen: boolean;
@@ -14,7 +14,18 @@ interface CommentDrawerProps {
   title?: string;
 }
 
-function CommentItem({ comment }: { comment: MockComment }) {
+interface ReplyingTo {
+  username: string;
+  commentId: string;
+}
+
+function CommentItem({
+  comment,
+  onReply,
+}: {
+  comment: MockComment;
+  onReply: (username: string, commentId: string) => void;
+}) {
   const [isLiked, setIsLiked] = useState(comment.isLiked);
   const [likeCount, setLikeCount] = useState(comment.likes);
 
@@ -33,6 +44,9 @@ function CommentItem({ comment }: { comment: MockComment }) {
         src={comment.author.avatarUrl}
         alt={comment.author.displayName}
         className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-0.5"
+        onError={(e) => {
+          e.currentTarget.style.display = "none";
+        }}
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
@@ -64,9 +78,45 @@ function CommentItem({ comment }: { comment: MockComment }) {
             )}
           </button>
         </div>
-        <p className="text-xs text-white/30 mt-1">
-          {formatRelativeTime(comment.timestamp)}
-        </p>
+        <div className="flex items-center gap-3 mt-1">
+          <p className="text-xs text-white/30">
+            {formatRelativeTime(comment.timestamp)}
+          </p>
+          <button
+            type="button"
+            onClick={() => onReply(comment.author.username, comment.id)}
+            className="flex items-center gap-1 text-xs text-white/30 hover:text-violet-400 transition-colors"
+          >
+            <Reply size={11} />
+            Reply
+          </button>
+        </div>
+        {/* Replies (nested) */}
+        {comment.replies && comment.replies.length > 0 && (
+          <div className="mt-2 space-y-2 pl-2 border-l border-white/10">
+            {comment.replies.map((reply) => (
+              <div key={reply.id} className="flex items-start gap-2">
+                <img
+                  src={reply.author.avatarUrl}
+                  alt={reply.author.username}
+                  className="w-6 h-6 rounded-full object-cover flex-shrink-0 mt-0.5"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-semibold text-white mr-1.5">
+                    {reply.author.username}
+                  </span>
+                  <span className="text-xs text-white/70">{reply.text}</span>
+                  <p className="text-[10px] text-white/30 mt-0.5">
+                    {formatRelativeTime(reply.timestamp)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -80,18 +130,35 @@ export function CommentDrawer({
   title = "Comments",
 }: CommentDrawerProps) {
   const [inputText, setInputText] = useState("");
+  const [replyingTo, setReplyingTo] = useState<ReplyingTo | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleReply = (username: string, commentId: string) => {
+    setReplyingTo({ username, commentId });
+    setInputText(`@${username} `);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const handleCancelReply = () => {
+    setReplyingTo(null);
+    setInputText("");
+  };
 
   const handleSubmit = () => {
     const trimmed = inputText.trim();
     if (!trimmed) return;
     onAddComment(trimmed);
     setInputText("");
+    setReplyingTo(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       handleSubmit();
+    }
+    if (e.key === "Escape" && replyingTo) {
+      handleCancelReply();
     }
   };
 
@@ -119,7 +186,7 @@ export function CommentDrawer({
           >
             <div className="glass-card rounded-t-3xl rounded-b-none border-t border-white/10 flex flex-col max-h-[70vh]">
               {/* Handle + header */}
-              <div className="flex items-center justify-between px-5 pt-4 pb-3 flex-shrink-0">
+              <div className="flex items-center justify-between px-5 pt-4 pb-3 flex-shrink-0 relative">
                 <div className="w-10 h-1 rounded-full bg-white/20 absolute top-2.5 left-1/2 -translate-x-1/2" />
                 <h3 className="text-base font-semibold text-white">{title}</h3>
                 <button
@@ -143,17 +210,52 @@ export function CommentDrawer({
                 ) : (
                   <div>
                     {comments.map((comment) => (
-                      <CommentItem key={comment.id} comment={comment} />
+                      <CommentItem
+                        key={comment.id}
+                        comment={comment}
+                        onReply={handleReply}
+                      />
                     ))}
                   </div>
                 )}
               </div>
 
+              {/* Reply banner */}
+              {replyingTo && (
+                <div
+                  className="flex items-center justify-between px-4 py-2 flex-shrink-0"
+                  style={{
+                    background: "rgba(124,58,237,0.1)",
+                    borderTop: "1px solid rgba(124,58,237,0.2)",
+                  }}
+                >
+                  <p className="text-xs text-violet-400">
+                    Replying to{" "}
+                    <span className="font-semibold">
+                      @{replyingTo.username}
+                    </span>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleCancelReply}
+                    className="text-white/40 hover:text-white transition-colors"
+                    aria-label="Cancel reply"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
               {/* Sticky input row */}
               <div className="flex items-center gap-3 px-4 py-3 border-t border-white/8 flex-shrink-0">
                 <div className="flex-1">
                   <GlassInput
-                    placeholder="Add a comment..."
+                    ref={inputRef}
+                    placeholder={
+                      replyingTo
+                        ? `Reply to @${replyingTo.username}...`
+                        : "Add a comment..."
+                    }
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyDown={handleKeyDown}

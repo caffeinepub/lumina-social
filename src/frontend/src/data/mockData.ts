@@ -41,127 +41,276 @@ export const AREY_USER: MockUser = {
   isVerified: false,
 };
 
+// Celebrity accounts
+export const CELEB_ELON: MockUser = {
+  id: "elon",
+  username: "elonmusk",
+  displayName: "Elon Musk",
+  bio: "CEO of SpaceX, Tesla & X. Mars or bust. 🚀",
+  avatarUrl: "https://i.pravatar.cc/150?img=57",
+  websiteUrl: "x.com/elonmusk",
+  isPrivate: false,
+  followersCount: 178500000,
+  followingCount: 612,
+  postsCount: 45200,
+  isFollowing: false,
+  isVerified: true,
+};
+
+export const CELEB_RDJ: MockUser = {
+  id: "rdj",
+  username: "robertdowneyjr",
+  displayName: "Robert Downey Jr.",
+  bio: "Actor. Former Iron Man. Currently just a guy who makes stuff. 🎬",
+  avatarUrl: "https://i.pravatar.cc/150?img=60",
+  websiteUrl: "robertdowneyjr.com",
+  isPrivate: false,
+  followersCount: 52300000,
+  followingCount: 248,
+  postsCount: 3820,
+  isFollowing: false,
+  isVerified: true,
+};
+
+export const CELEB_CHRIS: MockUser = {
+  id: "chris",
+  username: "chrishemsworth",
+  displayName: "Chris Hemsworth",
+  bio: "Aussie. Father. Occasional Viking. 🔨⚡",
+  avatarUrl: "https://i.pravatar.cc/150?img=65",
+  websiteUrl: "centr.com",
+  isPrivate: false,
+  followersCount: 61200000,
+  followingCount: 430,
+  postsCount: 4110,
+  isFollowing: false,
+  isVerified: true,
+};
+
+export const CELEB_MIA_K: MockUser = {
+  id: "mia_k",
+  username: "miakhalifa",
+  displayName: "Mia Khalifa",
+  bio: "Author. Podcast host. Professional opinionated person. 📖",
+  avatarUrl: "https://i.pravatar.cc/150?img=44",
+  websiteUrl: "miakhalifa.com",
+  isPrivate: false,
+  followersCount: 28400000,
+  followingCount: 892,
+  postsCount: 7340,
+  isFollowing: false,
+  isVerified: true,
+};
+
+export const CELEB_SUNNY: MockUser = {
+  id: "sunny",
+  username: "sunnyleone",
+  displayName: "Sunny Leone",
+  bio: "Actor | Mom | Wife | Dog lover 🐾❤️",
+  avatarUrl: "https://i.pravatar.cc/150?img=47",
+  websiteUrl: "sunnyleone.com",
+  isPrivate: false,
+  followersCount: 35700000,
+  followingCount: 621,
+  postsCount: 9280,
+  isFollowing: false,
+  isVerified: true,
+};
+
+export const CELEB_MIA_M: MockUser = {
+  id: "mia_m",
+  username: "miamalkova",
+  displayName: "Mia Malkova",
+  bio: "Gamer. Content creator. Professional chaos agent 🎮✨",
+  avatarUrl: "https://i.pravatar.cc/150?img=49",
+  websiteUrl: "miamalkova.com",
+  isPrivate: false,
+  followersCount: 14200000,
+  followingCount: 445,
+  postsCount: 5630,
+  isFollowing: false,
+  isVerified: true,
+};
+
+export const CELEB_TAYLOR: MockUser = {
+  id: "taylor",
+  username: "taylorswift",
+  displayName: "Taylor Swift",
+  bio: "Singer-songwriter. Cat mom. Writing letters to you from my eras. 🩷",
+  avatarUrl: "https://i.pravatar.cc/150?img=51",
+  websiteUrl: "taylorswift.com",
+  isPrivate: false,
+  followersCount: 283000000,
+  followingCount: 0,
+  postsCount: 1250,
+  isFollowing: false,
+  isVerified: true,
+};
+
+export const CELEBRITY_USERS: MockUser[] = [
+  CELEB_ELON,
+  CELEB_RDJ,
+  CELEB_CHRIS,
+  CELEB_MIA_K,
+  CELEB_SUNNY,
+  CELEB_MIA_M,
+  CELEB_TAYLOR,
+];
+
+const USER_AURORA: MockUser = {
+  id: "1",
+  username: "aurora.lens",
+  displayName: "Aurora Chen",
+  bio: "Chasing light, capturing moments ✨ Tokyo based photographer",
+  avatarUrl: "https://i.pravatar.cc/150?img=1",
+  websiteUrl: "aurora.photography",
+  isPrivate: false,
+  followersCount: 48200,
+  followingCount: 312,
+  postsCount: 847,
+  isFollowing: false,
+  isVerified: true,
+};
+
+const USER_NEON: MockUser = {
+  id: "2",
+  username: "neon.nomad",
+  displayName: "Marcus Webb",
+  bio: "Digital wanderer 🌐 Building worlds, one pixel at a time",
+  avatarUrl: "https://i.pravatar.cc/150?img=3",
+  websiteUrl: "neon-nomad.io",
+  isPrivate: false,
+  followersCount: 23100,
+  followingCount: 580,
+  postsCount: 423,
+  isFollowing: true,
+  isVerified: false,
+};
+
+const USER_VELVET: MockUser = {
+  id: "3",
+  username: "velvet.sky",
+  displayName: "Sofia Reyes",
+  bio: "Fashion & Art Director | Madrid → Paris 🌸",
+  avatarUrl: "https://i.pravatar.cc/150?img=5",
+  websiteUrl: "velvetsky.studio",
+  isPrivate: false,
+  followersCount: 91500,
+  followingCount: 210,
+  postsCount: 1203,
+  isFollowing: true,
+  isVerified: true,
+};
+
+const USER_ECHO: MockUser = {
+  id: "4",
+  username: "echo.frames",
+  displayName: "Aiden Park",
+  bio: "Filmmaker | Storyteller 🎬 Seoul native, world traveler",
+  avatarUrl: "https://i.pravatar.cc/150?img=8",
+  websiteUrl: "echoframes.co",
+  isPrivate: false,
+  followersCount: 15800,
+  followingCount: 923,
+  postsCount: 289,
+  isFollowing: false,
+  isVerified: false,
+};
+
+const USER_LUNA: MockUser = {
+  id: "5",
+  username: "luna.abstract",
+  displayName: "Luna Nakamura",
+  bio: "Digital artist & 3D sculptor 🎨 NFT creator",
+  avatarUrl: "https://i.pravatar.cc/150?img=10",
+  websiteUrl: "luna-art.xyz",
+  isPrivate: false,
+  followersCount: 67300,
+  followingCount: 445,
+  postsCount: 512,
+  isFollowing: true,
+  isVerified: true,
+};
+
+const USER_PRISM: MockUser = {
+  id: "6",
+  username: "prism.collective",
+  displayName: "Prism Creative",
+  bio: "Design collective pushing boundaries 🔺 Open to collabs",
+  avatarUrl: "https://i.pravatar.cc/150?img=12",
+  websiteUrl: "prism.design",
+  isPrivate: false,
+  followersCount: 34500,
+  followingCount: 189,
+  postsCount: 678,
+  isFollowing: false,
+  isVerified: true,
+};
+
+const USER_DRIFT: MockUser = {
+  id: "7",
+  username: "drift.code",
+  displayName: "Kai Sorensen",
+  bio: "Backend engineer by day, synth composer by night 🎵",
+  avatarUrl: "https://i.pravatar.cc/150?img=14",
+  websiteUrl: "drift.dev",
+  isPrivate: false,
+  followersCount: 8900,
+  followingCount: 712,
+  postsCount: 156,
+  isFollowing: true,
+  isVerified: false,
+};
+
+const USER_ZENITH: MockUser = {
+  id: "8",
+  username: "zenith.flora",
+  displayName: "Mia Laurent",
+  bio: "Botanist & minimalist photographer 🌿 Plants over people",
+  avatarUrl: "https://i.pravatar.cc/150?img=16",
+  websiteUrl: "zenithflora.co",
+  isPrivate: true,
+  followersCount: 12400,
+  followingCount: 340,
+  postsCount: 334,
+  isFollowing: false,
+  isVerified: false,
+};
+
+export const SHIV_USER: MockUser = {
+  id: "shiv",
+  username: "shivislowkeycrazy",
+  displayName: "Shiv",
+  bio: "just vibing tbh 🌊 chill but lowkey unhinged",
+  avatarUrl: "/assets/uploads/Screenshot-2026-03-02-at-11.25.07-AM-3-1.png",
+  websiteUrl: "",
+  isPrivate: false,
+  followersCount: 542,
+  followingCount: 289,
+  postsCount: 34,
+  isFollowing: true,
+  isVerified: false,
+};
+
 export const MOCK_USERS: MockUser[] = [
   CHOCO_USER,
   AREY_USER,
-  {
-    id: "1",
-    username: "aurora.lens",
-    displayName: "Aurora Chen",
-    bio: "Chasing light, capturing moments ✨ Tokyo based photographer",
-    avatarUrl: "https://i.pravatar.cc/150?img=1",
-    websiteUrl: "aurora.photography",
-    isPrivate: false,
-    followersCount: 48200,
-    followingCount: 312,
-    postsCount: 847,
-    isFollowing: false,
-    isVerified: true,
-  },
-  {
-    id: "2",
-    username: "neon.nomad",
-    displayName: "Marcus Webb",
-    bio: "Digital wanderer 🌐 Building worlds, one pixel at a time",
-    avatarUrl: "https://i.pravatar.cc/150?img=3",
-    websiteUrl: "neon-nomad.io",
-    isPrivate: false,
-    followersCount: 23100,
-    followingCount: 580,
-    postsCount: 423,
-    isFollowing: true,
-    isVerified: false,
-  },
-  {
-    id: "3",
-    username: "velvet.sky",
-    displayName: "Sofia Reyes",
-    bio: "Fashion & Art Director | Madrid → Paris 🌸",
-    avatarUrl: "https://i.pravatar.cc/150?img=5",
-    websiteUrl: "velvetsky.studio",
-    isPrivate: false,
-    followersCount: 91500,
-    followingCount: 210,
-    postsCount: 1203,
-    isFollowing: true,
-    isVerified: true,
-  },
-  {
-    id: "4",
-    username: "echo.frames",
-    displayName: "Aiden Park",
-    bio: "Filmmaker | Storyteller 🎬 Seoul native, world traveler",
-    avatarUrl: "https://i.pravatar.cc/150?img=8",
-    websiteUrl: "echoframes.co",
-    isPrivate: false,
-    followersCount: 15800,
-    followingCount: 923,
-    postsCount: 289,
-    isFollowing: false,
-    isVerified: false,
-  },
-  {
-    id: "5",
-    username: "luna.abstract",
-    displayName: "Luna Nakamura",
-    bio: "Digital artist & 3D sculptor 🎨 NFT creator",
-    avatarUrl: "https://i.pravatar.cc/150?img=10",
-    websiteUrl: "luna-art.xyz",
-    isPrivate: false,
-    followersCount: 67300,
-    followingCount: 445,
-    postsCount: 512,
-    isFollowing: true,
-    isVerified: true,
-  },
-  {
-    id: "6",
-    username: "prism.collective",
-    displayName: "Prism Creative",
-    bio: "Design collective pushing boundaries 🔺 Open to collabs",
-    avatarUrl: "https://i.pravatar.cc/150?img=12",
-    websiteUrl: "prism.design",
-    isPrivate: false,
-    followersCount: 34500,
-    followingCount: 189,
-    postsCount: 678,
-    isFollowing: false,
-    isVerified: true,
-  },
-  {
-    id: "7",
-    username: "drift.code",
-    displayName: "Kai Sorensen",
-    bio: "Backend engineer by day, synth composer by night 🎵",
-    avatarUrl: "https://i.pravatar.cc/150?img=14",
-    websiteUrl: "drift.dev",
-    isPrivate: false,
-    followersCount: 8900,
-    followingCount: 712,
-    postsCount: 156,
-    isFollowing: true,
-    isVerified: false,
-  },
-  {
-    id: "8",
-    username: "zenith.flora",
-    displayName: "Mia Laurent",
-    bio: "Botanist & minimalist photographer 🌿 Plants over people",
-    avatarUrl: "https://i.pravatar.cc/150?img=16",
-    websiteUrl: "zenithflora.co",
-    isPrivate: true,
-    followersCount: 12400,
-    followingCount: 340,
-    postsCount: 334,
-    isFollowing: false,
-    isVerified: false,
-  },
+  SHIV_USER,
+  ...CELEBRITY_USERS,
+  USER_AURORA,
+  USER_NEON,
+  USER_VELVET,
+  USER_ECHO,
+  USER_LUNA,
+  USER_PRISM,
+  USER_DRIFT,
+  USER_ZENITH,
 ];
 
 const MOCK_COMMENTS: MockComment[] = [
   {
     id: "c1",
-    author: MOCK_USERS[1],
+    author: USER_AURORA,
     text: "This is absolutely stunning! 🔥",
     timestamp: new Date(Date.now() - 1800000),
     likes: 24,
@@ -169,7 +318,7 @@ const MOCK_COMMENTS: MockComment[] = [
   },
   {
     id: "c2",
-    author: MOCK_USERS[2],
+    author: USER_NEON,
     text: "The lighting here is perfection ✨",
     timestamp: new Date(Date.now() - 3600000),
     likes: 12,
@@ -177,7 +326,7 @@ const MOCK_COMMENTS: MockComment[] = [
   },
   {
     id: "c3",
-    author: MOCK_USERS[4],
+    author: USER_LUNA,
     text: "Incredible composition 🎨",
     timestamp: new Date(Date.now() - 7200000),
     likes: 8,
@@ -188,7 +337,7 @@ const MOCK_COMMENTS: MockComment[] = [
 export const MOCK_POSTS: MockPost[] = [
   {
     id: "p1",
-    author: MOCK_USERS[1], // aurora.lens
+    author: USER_AURORA,
     imageUrl: "https://picsum.photos/seed/lumina_p1/600/600",
     caption:
       "Golden hour in Shinjuku 🌆 The city never stops breathing. Caught this moment between two worlds — neon signs waking up as sunlight dies.",
@@ -204,7 +353,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p2",
-    author: MOCK_USERS[3], // velvet.sky - fashion
+    author: USER_VELVET,
     imageUrl: "https://picsum.photos/seed/lumina_p2/600/600",
     caption:
       "New collection drop 🌸 Fashion is the armor to survive everyday life. This piece took 3 weeks to conceptualize.",
@@ -220,7 +369,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p3",
-    author: MOCK_USERS[5], // luna.abstract - 3D digital artist
+    author: USER_LUNA,
     imageUrl: "https://picsum.photos/seed/lumina_p3/600/600",
     caption:
       "3D sculpture series: Fragments of Time 🎨 Each piece represents a memory dissolving into abstraction.",
@@ -235,7 +384,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p4",
-    author: MOCK_USERS[2], // neon.nomad - code/digital
+    author: USER_NEON,
     imageUrl: "https://picsum.photos/seed/lumina_p4/600/600",
     caption:
       "When code becomes art 💻✨ Built a generative algorithm that translates sound waves into visual geometry. Mesmerizing to watch.",
@@ -250,7 +399,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p5",
-    author: MOCK_USERS[6], // prism.collective - design
+    author: USER_PRISM,
     imageUrl: "https://picsum.photos/seed/lumina_p5/600/600",
     caption:
       "Identities in flux ◈ New visual identity project for a fintech startup. Geometric precision meets organic flow.",
@@ -266,7 +415,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p6",
-    author: MOCK_USERS[4], // echo.frames - filmmaker
+    author: USER_ECHO,
     imageUrl: "https://picsum.photos/seed/lumina_p6/600/600",
     caption:
       "Behind the lens of our latest short film 🎬 Practical effects using colored gels and fog machines. No CGI, pure in-camera magic.",
@@ -282,7 +431,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p7",
-    author: MOCK_USERS[7], // drift.code - synth/coding
+    author: USER_DRIFT,
     imageUrl: "https://picsum.photos/seed/lumina_p7/600/600",
     caption:
       "Late night coding sessions hit different with the right playlist 🎵 Sharing my Synthwave focus mix on my profile.",
@@ -297,7 +446,7 @@ export const MOCK_POSTS: MockPost[] = [
   },
   {
     id: "p8",
-    author: MOCK_USERS[8], // zenith.flora - plants
+    author: USER_ZENITH,
     imageUrl: "https://picsum.photos/seed/lumina_p8/600/600",
     caption:
       "Monstera deliciosa under diffused studio light 🌿 Plant photography is an exercise in patience and stillness.",
@@ -343,33 +492,107 @@ export const AREY_STORY: MockStory = {
   duration: 5000,
 };
 
+// Celebrity stories
+const CELEB_STORY_TEXTS: Record<string, string> = {
+  elon: "🚀 Just had a great Starship meeting. Mars is happening.",
+  rdj: "Just wrapped a new project. No spoilers 🎬",
+  chris: "Thor training never ends ⚡🔨",
+  mia_k: "New book chapter done. Feeling accomplished 📖",
+  sunny: "Love & light to everyone 🐾❤️",
+  mia_m: "Gaming session was INSANE today 🎮🔥",
+  taylor: "Writing new songs in the dark 🩷✨",
+};
+
 export const MOCK_STORIES: MockStory[] = [
   CHOCO_STORY,
   AREY_STORY,
-  ...MOCK_USERS.slice(2).map((user, i) => ({
-    id: `story_${user.id}`,
-    author: user,
+  // Celebrity stories
+  ...CELEBRITY_USERS.map((celeb, i) => ({
+    id: `story_celeb_${celeb.id}`,
+    author: celeb,
     imageGradient: STORY_GRADIENTS[i % STORY_GRADIENTS.length],
-    text: [
-      "Golden hour vibes ✨",
-      "New work dropping soon 🔥",
-      "Studio day 🎨",
-      "Tokyo nights 🌙",
-      undefined,
-      "BTS reel coming 🎬",
-      undefined,
-      "Morning light 🌿",
-    ][i],
-    timestamp: new Date(Date.now() - (i * 2 + 1) * 3600000),
-    isViewed: i > 3,
+    text: CELEB_STORY_TEXTS[celeb.id],
+    timestamp: new Date(Date.now() - (i + 1) * 3600000),
+    isViewed: false,
     duration: 5000,
   })),
+  // Regular user stories
+  {
+    id: "story_aurora",
+    author: USER_AURORA,
+    imageGradient: STORY_GRADIENTS[0],
+    text: "Golden hour vibes ✨",
+    timestamp: new Date(Date.now() - 2 * 3600000),
+    isViewed: false,
+    duration: 5000,
+  },
+  {
+    id: "story_neon",
+    author: USER_NEON,
+    imageGradient: STORY_GRADIENTS[1],
+    text: "New work dropping soon 🔥",
+    timestamp: new Date(Date.now() - 3 * 3600000),
+    isViewed: false,
+    duration: 5000,
+  },
+  {
+    id: "story_velvet",
+    author: USER_VELVET,
+    imageGradient: STORY_GRADIENTS[2],
+    text: "Studio day 🎨",
+    timestamp: new Date(Date.now() - 4 * 3600000),
+    isViewed: false,
+    duration: 5000,
+  },
+  {
+    id: "story_echo",
+    author: USER_ECHO,
+    imageGradient: STORY_GRADIENTS[3],
+    text: "Tokyo nights 🌙",
+    timestamp: new Date(Date.now() - 5 * 3600000),
+    isViewed: true,
+    duration: 5000,
+  },
+  {
+    id: "story_luna",
+    author: USER_LUNA,
+    imageGradient: STORY_GRADIENTS[4],
+    timestamp: new Date(Date.now() - 6 * 3600000),
+    isViewed: true,
+    duration: 5000,
+  },
+  {
+    id: "story_prism",
+    author: USER_PRISM,
+    imageGradient: STORY_GRADIENTS[5],
+    text: "BTS reel coming 🎬",
+    timestamp: new Date(Date.now() - 7 * 3600000),
+    isViewed: true,
+    duration: 5000,
+  },
+  {
+    id: "story_drift",
+    author: USER_DRIFT,
+    imageGradient: STORY_GRADIENTS[6],
+    timestamp: new Date(Date.now() - 8 * 3600000),
+    isViewed: true,
+    duration: 5000,
+  },
+  {
+    id: "story_zenith",
+    author: USER_ZENITH,
+    imageGradient: STORY_GRADIENTS[7],
+    text: "Morning light 🌿",
+    timestamp: new Date(Date.now() - 9 * 3600000),
+    isViewed: true,
+    duration: 5000,
+  },
 ];
 
 export const MOCK_REELS: MockReel[] = [
   {
     id: "r1",
-    author: MOCK_USERS[1], // aurora.lens
+    author: USER_AURORA,
     caption: "Tokyo night street in slow motion 🌆 The city breathes",
     audioTrack: "Midnight City — M83",
     likes: 24891,
@@ -385,7 +608,7 @@ export const MOCK_REELS: MockReel[] = [
   },
   {
     id: "r2",
-    author: MOCK_USERS[3], // velvet.sky - fashion
+    author: USER_VELVET,
     caption: "Fashion week backstage chaos in 30 seconds 🌸✨",
     audioTrack: "Bejeweled — Taylor Swift",
     likes: 89234,
@@ -401,7 +624,7 @@ export const MOCK_REELS: MockReel[] = [
   },
   {
     id: "r3",
-    author: MOCK_USERS[5], // luna.abstract - 3D artist
+    author: USER_LUNA,
     caption: "3D sculpting timelapse: 72 hours in 30 seconds 🎨",
     audioTrack: "Flume — Holdin On",
     likes: 31456,
@@ -417,7 +640,7 @@ export const MOCK_REELS: MockReel[] = [
   },
   {
     id: "r4",
-    author: MOCK_USERS[4], // echo.frames - filmmaker
+    author: USER_ECHO,
     caption: "Practical effects magic — no CGI, pure film 🎬",
     audioTrack: "Hans Zimmer — Time",
     likes: 15678,
@@ -433,7 +656,7 @@ export const MOCK_REELS: MockReel[] = [
   },
   {
     id: "r5",
-    author: MOCK_USERS[6], // prism.collective - design
+    author: USER_PRISM,
     caption: "Brand identity design process — from concept to final 🔺",
     audioTrack: "Lo-fi Study Beats",
     likes: 8923,
@@ -496,74 +719,151 @@ export const MOCK_CONVERSATIONS: MockConversation[] = [
     isMuted: false,
   },
   {
-    id: "conv1",
-    // aurora.lens [1] + velvet.sky [3]
-    participants: [MOCK_USERS[1], MOCK_USERS[3]],
-    lastMessage: mockMsg("m1", MOCK_USERS[3].id, "Love the new shoot! 🔥", 5),
-    unreadCount: 2,
-    isGroup: false,
-    isMuted: false,
-  },
-  {
-    id: "conv2",
-    // luna.abstract [5] + neon.nomad [2]
-    participants: [MOCK_USERS[5], MOCK_USERS[2]],
+    id: "conv_shiv",
+    participants: [SHIV_USER],
     lastMessage: mockMsg(
-      "m2",
-      MOCK_USERS[2].id,
-      "Let's collaborate on that piece",
-      32,
-    ),
-    unreadCount: 0,
-    isGroup: false,
-    isMuted: false,
-  },
-  {
-    id: "conv3",
-    // aurora [1] + neon.nomad [2] + prism [6]
-    participants: [MOCK_USERS[1], MOCK_USERS[2], MOCK_USERS[6]],
-    lastMessage: mockMsg(
-      "m3",
-      MOCK_USERS[6].id,
-      "Brief is ready, check it out!",
-      120,
+      "ms_last",
+      SHIV_USER.id,
+      "bro you good? haven't heard from you 👀",
+      45,
+      false,
     ),
     unreadCount: 1,
-    isGroup: true,
-    groupName: "Design Collective",
-    isMuted: false,
-  },
-  {
-    id: "conv4",
-    // echo.frames [4] + drift.code [7]
-    participants: [MOCK_USERS[4], MOCK_USERS[7]],
-    lastMessage: mockMsg(
-      "m4",
-      MOCK_USERS[4].id,
-      "The soundtrack fits perfectly 🎵",
-      360,
-    ),
-    unreadCount: 0,
     isGroup: false,
-    isMuted: true,
-  },
-  {
-    id: "conv5",
-    // zenith.flora [8] + velvet.sky [3]
-    participants: [MOCK_USERS[8], MOCK_USERS[3]],
-    lastMessage: mockMsg(
-      "m5",
-      MOCK_USERS[8].id,
-      "Those plants are incredible!",
-      720,
-    ),
-    unreadCount: 0,
-    isGroup: false,
+    isPinned: false,
     isMuted: false,
   },
 ];
 
 export const MOCK_MESSAGES_BY_CONV: Record<string, MockMessage[]> = {
+  conv_shiv: [
+    mockMsg("ms1", "me", "bhai kya chal raha hai life mein", 1440),
+    mockMsg(
+      "ms2",
+      SHIV_USER.id,
+      "arre bhai sab theek hai, bas thoda chill mode mein",
+      1438,
+    ),
+    mockMsg("ms3", "me", "nice nice, kuch naya?", 1435),
+    mockMsg(
+      "ms4",
+      SHIV_USER.id,
+      "nahi yaar, same old. ghar pe hi hun aajkal",
+      1433,
+    ),
+    mockMsg("ms5", "me", "gaming kar raha hai?", 1430),
+    mockMsg(
+      "ms6",
+      SHIV_USER.id,
+      "haan bhai, Valorant pe hi jeevan nikal raha hai 🎮",
+      1428,
+    ),
+    mockMsg("ms7", "me", "lol mujhe bhi seekhna hai properly", 1425),
+    mockMsg("ms8", SHIV_USER.id, "chal sikhata hun, it's not that hard", 1422),
+    mockMsg("ms9", "me", "serious? cool lagega", 1420),
+    mockMsg("ms10", SHIV_USER.id, "haan weekend pe try karte hain", 1418),
+    mockMsg("ms11", "me", "deal. tune kya khaya aaj?", 1200),
+    mockMsg("ms12", SHIV_USER.id, "bhai maggi. always maggi. 🍜", 1198),
+    mockMsg(
+      "ms13",
+      "me",
+      "bhai tune maggi ko hi apna life partner bana liya hai",
+      1195,
+    ),
+    mockMsg(
+      "ms14",
+      SHIV_USER.id,
+      "reliable hai, judge nahi karta, hamesha ready rehta hai 😌",
+      1193,
+    ),
+    mockMsg(
+      "ms15",
+      "me",
+      "accurate description of an ideal relationship tbh",
+      1190,
+    ),
+    mockMsg("ms16", SHIV_USER.id, "exactly bhai, I'm a simple man 🌊", 1188),
+    mockMsg("ms17", "me", "koi new song suna?", 900),
+    mockMsg(
+      "ms18",
+      SHIV_USER.id,
+      "haan bhai, ek song bahut acha lag raha hai aajkal",
+      898,
+    ),
+    mockMsg("ms19", SHIV_USER.id, "late night drive pe sunna chahiye", 897),
+    mockMsg("ms20", "me", "share kar na playlist", 895),
+    mockMsg("ms21", SHIV_USER.id, "aaj raat bhejta hun, remind kar dena", 893),
+    mockMsg("ms22", "me", "haan pakka", 891),
+    mockMsg("ms23", SHIV_USER.id, "bhai ek cheez batao", 600),
+    mockMsg("ms24", "me", "kya hua?", 598),
+    mockMsg(
+      "ms25",
+      SHIV_USER.id,
+      "kya tujhe bhi lagta hai ki hum sab bas exist kar rahe hain",
+      596,
+    ),
+    mockMsg("ms26", SHIV_USER.id, "koi actual plan nahi life ka", 595),
+    mockMsg(
+      "ms27",
+      "me",
+      "bhai 3 baje ka existential crisis mat le please 😭",
+      593,
+    ),
+    mockMsg(
+      "ms28",
+      SHIV_USER.id,
+      "haha sorry bhai, maggi ne deep thoughts diye aaj",
+      591,
+    ),
+    mockMsg("ms29", "me", "maggi ka effect bura hota hai", 589),
+    mockMsg("ms30", SHIV_USER.id, "noted. next time paneer banaunga", 587),
+    mockMsg(
+      "ms31",
+      "me",
+      "bro tera cooking level maggi se paneer? that's growth",
+      585,
+    ),
+    mockMsg("ms32", SHIV_USER.id, "lowkey unhinged tha kal raat 😂", 400),
+    mockMsg("ms33", "me", "kya hua?", 398),
+    mockMsg(
+      "ms34",
+      SHIV_USER.id,
+      "3 baje tak online tha, kuch kaam nahi kar raha tha",
+      396,
+    ),
+    mockMsg("ms35", SHIV_USER.id, "bas random YouTube rabbit holes", 395),
+    mockMsg("ms36", "me", "same bro, happened to me last week", 393),
+    mockMsg("ms37", SHIV_USER.id, "brotherhood 🤝", 391),
+    mockMsg("ms38", "me", "pure chaos solidarity", 389),
+    mockMsg("ms39", SHIV_USER.id, "bhai weekend ka kya plan hai?", 200),
+    mockMsg("ms40", "me", "koi plan nahi, ghar pe hi rehna hai", 198),
+    mockMsg(
+      "ms41",
+      SHIV_USER.id,
+      "chal rooftop chhata pe baithte hain, sky dekhte hain",
+      196,
+    ),
+    mockMsg("ms42", "me", "bhai that's actually a vibe", 194),
+    mockMsg("ms43", SHIV_USER.id, "snacks leke aao, I'll bring the chill", 192),
+    mockMsg("ms44", "me", "done deal 🤝", 190),
+    mockMsg(
+      "ms45",
+      SHIV_USER.id,
+      "you're actually one of the genuine ones bhai",
+      120,
+    ),
+    mockMsg("ms46", "me", "aye don't get emotional now 😂", 118),
+    mockMsg("ms47", SHIV_USER.id, "I'm serious, rare to find in this era", 116),
+    mockMsg("ms48", "me", "tu bhi yaar, genuine log rare hi hote hain", 114),
+    mockMsg("ms49", SHIV_USER.id, "okay okay mushkil ho gaya", 112),
+    mockMsg(
+      "ms50",
+      SHIV_USER.id,
+      "bro you good? haven't heard from you 👀",
+      45,
+      false,
+    ),
+  ],
   conv_arey: [
     mockMsg("ma1", "me", "yaar aaj kuch acha nahi lag raha", 1500),
     mockMsg("ma2", AREY_USER.id, "kya hua bata mujhe", 1498),
@@ -825,80 +1125,13 @@ export const MOCK_MESSAGES_BY_CONV: Record<string, MockMessage[]> = {
       false,
     ),
   ],
-  conv1: [
-    mockMsg("m1_1", "me", "Just posted the Shinjuku series!", 65),
-    mockMsg(
-      "m1_2",
-      MOCK_USERS[2].id,
-      "Oh wow, I saw! The lighting is incredible ✨",
-      60,
-    ),
-    mockMsg(
-      "m1_3",
-      "me",
-      "Thanks! Shot during blue hour — only had 12 minutes",
-      55,
-    ),
-    mockMsg(
-      "m1_4",
-      MOCK_USERS[2].id,
-      "You should submit to Vogue Japan honestly",
-      50,
-    ),
-    mockMsg("m1_5", "me", "Haha maybe someday! How's Paris?", 40),
-    mockMsg("m1_6", MOCK_USERS[2].id, "Chaotic but beautiful as always 🌸", 35),
-    mockMsg("m1_7", MOCK_USERS[2].id, "Love the new shoot! 🔥", 5, false),
-  ],
-  conv2: [
-    mockMsg(
-      "m2_1",
-      MOCK_USERS[1].id,
-      "Hey! Loved your 3D sculpture series",
-      200,
-    ),
-    mockMsg("m2_2", "me", "Thank you so much! Took 3 weeks of evenings", 195),
-    mockMsg(
-      "m2_3",
-      MOCK_USERS[1].id,
-      "I'm working on a generative project",
-      190,
-    ),
-    mockMsg("m2_4", MOCK_USERS[1].id, "Let's collaborate on that piece", 32),
-  ],
-  conv3: [
-    mockMsg("m3_1", MOCK_USERS[1].id, "Welcome to the group! 👋", 1440),
-    mockMsg("m3_2", MOCK_USERS[5].id, "Glad we're all connecting!", 1430),
-    mockMsg("m3_3", "me", "Excited for this collab", 1420),
-    mockMsg("m3_4", MOCK_USERS[5].id, "Brief is ready, check it out!", 120),
-  ],
-  conv4: [
-    mockMsg("m4_1", "me", "Watched your short film — stunning!", 800),
-    mockMsg(
-      "m4_2",
-      MOCK_USERS[3].id,
-      "Appreciate it! It was a passion project",
-      780,
-    ),
-    mockMsg("m4_3", "me", "The practical effects were insane", 760),
-    mockMsg("m4_4", MOCK_USERS[3].id, "The soundtrack fits perfectly 🎵", 360),
-  ],
-  conv5: [
-    mockMsg(
-      "m5_1",
-      MOCK_USERS[7].id,
-      "Just posted some new botanical shots",
-      800,
-    ),
-    mockMsg("m5_2", "me", "Beautiful! Love your minimalist style", 790),
-    mockMsg("m5_3", MOCK_USERS[7].id, "Those plants are incredible!", 720),
-  ],
 };
 
 export const MOCK_NOTIFICATIONS: MockNotification[] = [
   {
     id: "n1",
     type: "like",
-    actor: MOCK_USERS[2],
+    actor: USER_NEON,
     postThumbnail: "https://picsum.photos/seed/lumina_p1/60/60",
     text: "liked your photo",
     timestamp: new Date(Date.now() - 300000),
@@ -907,7 +1140,7 @@ export const MOCK_NOTIFICATIONS: MockNotification[] = [
   {
     id: "n2",
     type: "follow",
-    actor: MOCK_USERS[4],
+    actor: USER_ECHO,
     text: "started following you",
     timestamp: new Date(Date.now() - 600000),
     isRead: false,
@@ -915,7 +1148,7 @@ export const MOCK_NOTIFICATIONS: MockNotification[] = [
   {
     id: "n3",
     type: "comment",
-    actor: MOCK_USERS[1],
+    actor: USER_AURORA,
     postThumbnail: "https://picsum.photos/seed/lumina_p2/60/60",
     text: 'commented: "This is absolutely stunning! 🔥"',
     timestamp: new Date(Date.now() - 1800000),
@@ -924,7 +1157,7 @@ export const MOCK_NOTIFICATIONS: MockNotification[] = [
   {
     id: "n4",
     type: "mention",
-    actor: MOCK_USERS[5],
+    actor: USER_LUNA,
     postThumbnail: "https://picsum.photos/seed/lumina_p3/60/60",
     text: "mentioned you in a comment",
     timestamp: new Date(Date.now() - 3600000),
@@ -978,14 +1211,6 @@ export const TRENDING_HASHTAGS = [
 ];
 
 export const MOCK_NOTES: MockNote[] = [
-  {
-    id: "note_arey",
-    author: AREY_USER,
-    text: "👉🏻👈🏻 u deserve better, always",
-    timestamp: new Date(Date.now() - 45 * 60000),
-    expiresAt: new Date(Date.now() - 45 * 60000 + 24 * 3600000),
-    replies: [],
-  },
   {
     id: "note_choco",
     author: CHOCO_USER,

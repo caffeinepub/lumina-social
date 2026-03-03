@@ -37,6 +37,14 @@ export interface MockComment {
   timestamp: Date;
   likes: number;
   isLiked: boolean;
+  replies?: MockCommentReply[];
+}
+
+export interface MockCommentReply {
+  id: string;
+  author: MockUser;
+  text: string;
+  timestamp: Date;
 }
 
 export interface MockStory {
@@ -86,13 +94,17 @@ export interface MockMessage {
   timestamp: Date;
   isRead: boolean;
   reactions?: { emoji: string; count: number }[];
-  type: "text" | "image" | "sticker" | "voice" | "shared_post";
+  type: "text" | "image" | "sticker" | "voice" | "shared_post" | "media";
   sharedPost?: {
     id: string;
     imageUrl: string;
     caption: string;
     authorUsername: string;
   };
+  mediaUrl?: string;
+  mediaType?: "image" | "video";
+  audioUrl?: string;
+  duration?: number;
 }
 
 export interface MockNotification {
@@ -111,6 +123,7 @@ export interface MusicTrack {
   artist: string;
   artworkUrl: string;
   previewUrl: string;
+  startSeconds?: number;
 }
 
 export interface MockNote {

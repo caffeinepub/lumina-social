@@ -301,18 +301,26 @@ export function ProfilePage() {
 
   const fallbackUser =
     MOCK_USERS.find((u) => u.username === username) ?? MOCK_USERS[2];
-  const user = isOwnProfile
-    ? {
-        ...fallbackUser,
-        username: currentUser?.username ?? fallbackUser.username,
-        displayName: currentUser?.displayName ?? fallbackUser.displayName,
-        avatarUrl:
-          currentUser?.avatarUrl && currentUser.avatarUrl !== ""
-            ? currentUser.avatarUrl
-            : fallbackUser.avatarUrl,
-        bio: currentUser?.bio ?? fallbackUser.bio,
-      }
-    : fallbackUser;
+
+  // For own profile, build a user object that reflects stored account data
+  const ownProfileUser =
+    isOwnProfile && currentUser
+      ? {
+          ...fallbackUser,
+          username: currentUser.username ?? fallbackUser.username,
+          displayName: currentUser.displayName ?? fallbackUser.displayName,
+          avatarUrl:
+            currentUser.avatarUrl && currentUser.avatarUrl !== ""
+              ? currentUser.avatarUrl
+              : fallbackUser.avatarUrl,
+          bio: currentUser.bio ?? fallbackUser.bio,
+          followersCount: currentUser.followersCount ?? 0,
+          followingCount: currentUser.followingCount ?? 0,
+          postsCount: currentUser.postsCount ?? 0,
+        }
+      : null;
+
+  const user = isOwnProfile && ownProfileUser ? ownProfileUser : fallbackUser;
 
   const userPosts = posts.filter((p) => {
     if (isOwnProfile) return true;
@@ -370,14 +378,22 @@ export function ProfilePage() {
               </div>
 
               {isOwnProfile ? (
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-shrink-0">
                   <Link to="/profile/edit">
-                    <GlassButton variant="glass" size="sm">
+                    <GlassButton
+                      variant="glass"
+                      size="sm"
+                      className="min-h-[36px]"
+                    >
                       Edit
                     </GlassButton>
                   </Link>
                   <Link to="/settings">
-                    <GlassButton variant="ghost" size="icon">
+                    <GlassButton
+                      variant="ghost"
+                      size="icon"
+                      className="min-h-[36px] min-w-[36px]"
+                    >
                       <Settings size={16} />
                     </GlassButton>
                   </Link>
@@ -419,15 +435,23 @@ export function ProfilePage() {
               {[
                 {
                   label: "posts",
-                  value: userPosts.length || fallbackUser.postsCount,
+                  value: isOwnProfile
+                    ? userPosts.length || user.postsCount
+                    : userPosts.length || fallbackUser.postsCount,
                 },
                 {
                   label: "followers",
-                  value:
-                    fallbackUser.followersCount +
-                    (isFollowing && !fallbackUser.isFollowing ? 1 : 0),
+                  value: isOwnProfile
+                    ? (user.followersCount ?? 0)
+                    : fallbackUser.followersCount +
+                      (isFollowing && !fallbackUser.isFollowing ? 1 : 0),
                 },
-                { label: "following", value: fallbackUser.followingCount },
+                {
+                  label: "following",
+                  value: isOwnProfile
+                    ? (user.followingCount ?? 0)
+                    : fallbackUser.followingCount,
+                },
               ].map((stat) => (
                 <button
                   type="button"

@@ -27,7 +27,8 @@ function ReelCard({
   const { currentUser } = useAuthContext();
   const [isLiked, setIsLiked] = useState(reel.isLiked);
   const [isSaved, setIsSaved] = useState(reel.isSaved);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   const [showLike, setShowLike] = useState(false);
   const [isCommentDrawerOpen, setIsCommentDrawerOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -35,20 +36,26 @@ function ReelCard({
   const [commentCountOffset, setCommentCountOffset] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Sync muted state with video element
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = isMuted;
-    }
-  }, [isMuted]);
-
-  // Play/pause based on active state
+  // Play/pause with unmuted audio; fallback to muted if autoplay blocked
   useEffect(() => {
     if (!videoRef.current) return;
     if (isActive) {
-      videoRef.current.play().catch(() => {});
+      videoRef.current.muted = false;
+      videoRef.current.volume = 1;
+      videoRef.current.play().catch(() => {
+        // Autoplay with audio blocked by browser — retry muted
+        if (videoRef.current) {
+          videoRef.current.muted = true;
+          setIsMuted(true);
+          setAutoplayBlocked(true);
+          videoRef.current.play().catch(() => {});
+        }
+      });
     } else {
       videoRef.current.pause();
+      // Reset autoplay blocked state so the next time this reel becomes active
+      // it tries with audio again
+      setAutoplayBlocked(false);
     }
   }, [isActive]);
 
@@ -63,8 +70,19 @@ function ReelCard({
   const handleToggleMute = () => {
     const newMuted = !isMuted;
     setIsMuted(newMuted);
+    setAutoplayBlocked(false);
     if (videoRef.current) {
       videoRef.current.muted = newMuted;
+      videoRef.current.volume = newMuted ? 0 : 1;
+    }
+  };
+
+  const handleTapToUnmute = () => {
+    setIsMuted(false);
+    setAutoplayBlocked(false);
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.volume = 1;
     }
   };
 
@@ -95,7 +113,7 @@ function ReelCard({
   };
 
   return (
-    <div className="relative w-full h-full flex-shrink-0 overflow-hidden rounded-none md:rounded-3xl bg-black">
+    <div className="relative w-full h-full flex-shrink-0 bg-black">
       {/* Video element */}
       {reel.videoUrl ? (
         <video
@@ -105,8 +123,7 @@ function ReelCard({
           autoPlay
           loop
           playsInline
-          muted={isMuted}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-contain"
         >
           <track kind="captions" />
         </video>
@@ -119,6 +136,24 @@ function ReelCard({
 
       {/* Dark gradient overlay for readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70" />
+
+      {/* Tap to unmute overlay */}
+      <AnimatePresence>
+        {autoplayBlocked && (
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            onClick={handleTapToUnmute}
+            className="absolute bottom-36 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 glass rounded-full px-4 py-2 text-white/90 text-sm font-medium hover:bg-white/20 transition-colors"
+            aria-label="Tap to unmute"
+          >
+            <VolumeX size={15} />
+            Tap to unmute
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Double tap like */}
       <AnimatePresence>
@@ -308,7 +343,7 @@ export function ReelsPage() {
   };
 
   return (
-    <div className="h-screen overflow-hidden">
+    <div style={{ height: "100dvh", overflow: "hidden" }}>
       <div
         ref={containerRef}
         className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-none"
@@ -318,10 +353,18 @@ export function ReelsPage() {
         {MOCK_REELS.map((reel, i) => (
           <div
             key={reel.id}
-            className="h-screen w-full snap-start snap-always flex items-center justify-center lg:gap-8"
+            className="w-full snap-start snap-always flex items-center justify-center lg:gap-8"
+            style={{ height: "100dvh" }}
           >
-            {/* Reel player */}
-            <div className="w-full h-full max-w-[420px] relative flex-shrink-0">
+            {/* Reel player — proper 9:16 aspect ratio that fits the viewport */}
+            <div
+              className="relative flex-shrink-0 rounded-none md:rounded-3xl overflow-hidden"
+              style={{
+                width: "min(420px, calc(100dvh * 9 / 16))",
+                height: "min(100dvh, calc(420px * 16 / 9))",
+                maxHeight: "100dvh",
+              }}
+            >
               <ReelCard reel={reel} isActive={i === currentIndex} />
             </div>
 

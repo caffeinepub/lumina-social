@@ -18,7 +18,6 @@ import { Globe, Lock, MapPin, Smile, Tag, Upload, X } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
-// Make POST_GRADIENTS accessible
 function getRandomGradient() {
   const gradients = [
     "linear-gradient(135deg, oklch(0.25 0.15 290), oklch(0.15 0.12 320))",
@@ -94,7 +93,7 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
           isFollowing: false,
           isVerified: false,
         }
-      : MOCK_USERS[1]; // aurora.lens is the default mock logged-in user
+      : MOCK_USERS[1];
 
     const newPost: MockPost = {
       id: `post_${Date.now()}`,
@@ -135,8 +134,9 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="glass-heavy border-white/10 text-white max-w-lg w-full p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-5 pb-4 border-b border-white/10">
+      <DialogContent className="glass-heavy border-white/10 text-white max-w-lg w-full p-0 max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header — always visible */}
+        <DialogHeader className="px-6 pt-5 pb-4 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-base font-semibold">
               New Post
@@ -151,7 +151,8 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
           </div>
         </DialogHeader>
 
-        <div className="px-6 py-4 space-y-4">
+        {/* Scrollable content */}
+        <div className="px-6 py-4 space-y-4 overflow-y-auto flex-1">
           {/* Upload area */}
           {!preview ? (
             <button
@@ -164,7 +165,7 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
               onDrop={handleDrop}
               onClick={() => fileRef.current?.click()}
               className={cn(
-                "w-full border-2 border-dashed rounded-2xl h-56 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-200",
+                "w-full border-2 border-dashed rounded-2xl h-44 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-200",
                 isDragging
                   ? "border-primary/60 bg-primary/10"
                   : "border-white/15 hover:border-white/30 hover:bg-white/3",
@@ -182,11 +183,11 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
               </div>
             </button>
           ) : (
-            <div className="relative rounded-2xl overflow-hidden aspect-square">
+            <div className="relative rounded-2xl overflow-hidden max-h-48">
               {mediaType === "video" ? (
                 <video
                   src={preview}
-                  className="w-full h-full object-cover"
+                  className="w-full max-h-48 object-contain"
                   controls
                 >
                   <track kind="captions" />
@@ -195,7 +196,7 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
                 <img
                   src={preview}
                   alt="Post preview"
-                  className="w-full h-full object-cover"
+                  className="w-full max-h-48 object-contain"
                 />
               )}
               <button
@@ -289,7 +290,8 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
           </div>
         </div>
 
-        <div className="px-6 pb-5">
+        {/* Footer — always visible, never pushed out */}
+        <div className="px-6 pb-5 pt-3 border-t border-white/10 flex-shrink-0">
           <GlassButton
             variant="gradient"
             className="w-full"

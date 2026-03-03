@@ -15,6 +15,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -53,9 +54,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] =
     useState<MockNotification[]>(MOCK_NOTIFICATIONS);
   const [messages, setMessages] = useState<Record<string, MockMessage[]>>(
-    MOCK_MESSAGES_BY_CONV,
+    () => {
+      try {
+        const stored = localStorage.getItem("lumina_messages");
+        if (stored) {
+          return JSON.parse(stored, (key, value) => {
+            if (key === "timestamp" && typeof value === "string")
+              return new Date(value);
+            return value;
+          }) as Record<string, MockMessage[]>;
+        }
+      } catch {
+        // fall through to default
+      }
+      return MOCK_MESSAGES_BY_CONV;
+    },
   );
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  // Persist messages to localStorage on change
+  useEffect(() => {
+    try {
+      localStorage.setItem("lumina_messages", JSON.stringify(messages));
+    } catch {
+      // ignore storage errors
+    }
+  }, [messages]);
 
   const unreadNotificationCount = notifications.filter((n) => !n.isRead).length;
 

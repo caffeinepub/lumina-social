@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface GlassAvatarProps {
   src: string;
@@ -28,6 +29,58 @@ const ringPad = {
   "2xl": "p-1",
 };
 
+const textSizes = {
+  xs: "text-[9px]",
+  sm: "text-[10px]",
+  md: "text-xs",
+  lg: "text-sm",
+  xl: "text-lg",
+  "2xl": "text-2xl",
+};
+
+function getInitials(alt: string): string {
+  const parts = alt.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return alt.substring(0, 2).toUpperCase();
+}
+
+function AvatarImage({
+  src,
+  alt,
+  size = "md",
+}: {
+  src: string;
+  alt: string;
+  size?: GlassAvatarProps["size"];
+}) {
+  const [errored, setErrored] = useState(false);
+
+  if (!src || src === "" || errored) {
+    return (
+      <div
+        className={cn(
+          "w-full h-full flex items-center justify-center gradient-bg text-white font-semibold select-none",
+          textSizes[size ?? "md"],
+        )}
+      >
+        {getInitials(alt)}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="w-full h-full object-cover"
+      loading="lazy"
+      onError={() => setErrored(true)}
+    />
+  );
+}
+
 export function GlassAvatar({
   src,
   alt,
@@ -45,12 +98,7 @@ export function GlassAvatar({
         className,
       )}
     >
-      <img
-        src={src}
-        alt={alt}
-        className="w-full h-full object-cover"
-        loading="lazy"
-      />
+      <AvatarImage src={src} alt={alt} size={size} />
     </div>
   );
 
@@ -102,12 +150,7 @@ export function GlassAvatar({
       >
         <div className={cn("rounded-full p-0.5 bg-background", sizes[size])}>
           <div className="w-full h-full rounded-full overflow-hidden bg-white/10">
-            <img
-              src={src}
-              alt={alt}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
+            <AvatarImage src={src} alt={alt} size={size} />
           </div>
         </div>
       </div>

@@ -12,6 +12,7 @@ import {
   Heart,
   Mail,
   MessageCircle,
+  Reply,
   UserPlus,
 } from "lucide-react";
 import { motion } from "motion/react";
@@ -61,6 +62,22 @@ function NotificationItem({
   index,
 }: { notif: MockNotification; index: number }) {
   const { markNotificationRead } = useApp();
+  const [isFollowedBack, setIsFollowedBack] = useState(false);
+  const [isReplying, setIsReplying] = useState(false);
+  const [replyText, setReplyText] = useState("");
+
+  const handleFollowBack = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsFollowedBack(true);
+  };
+
+  const handleReplySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (replyText.trim()) {
+      setIsReplying(false);
+      setReplyText("");
+    }
+  };
 
   return (
     <motion.div
@@ -69,56 +86,128 @@ function NotificationItem({
       transition={{ delay: index * 0.05 }}
       onClick={() => markNotificationRead(notif.id)}
       className={cn(
-        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer",
+        "px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer",
         !notif.isRead ? "bg-primary/6 hover:bg-primary/10" : "hover:bg-white/5",
       )}
     >
-      {/* Avatar with type indicator */}
-      <div className="relative flex-shrink-0">
-        <GlassAvatar
-          src={notif.actor.avatarUrl}
-          alt={notif.actor.displayName}
-          size="md"
-        />
-        <div className="absolute -bottom-0.5 -right-0.5">
-          <NotifIcon type={notif.type} />
+      <div className="flex items-center gap-3">
+        {/* Avatar with type indicator */}
+        <div className="relative flex-shrink-0">
+          <GlassAvatar
+            src={notif.actor.avatarUrl}
+            alt={notif.actor.displayName}
+            size="md"
+          />
+          <div className="absolute -bottom-0.5 -right-0.5">
+            <NotifIcon type={notif.type} />
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-white/90 leading-snug">
+            <Link
+              to="/profile/$username"
+              params={{ username: notif.actor.username }}
+              className="font-semibold hover:text-primary transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {notif.actor.username}
+            </Link>{" "}
+            <span className="text-white/60">{notif.text}</span>
+          </p>
+          <p className="text-xs text-white/30 mt-0.5">
+            {formatRelativeTime(notif.timestamp)}
+          </p>
+          {/* Reply button for comment notifications */}
+          {notif.type === "comment" && !isReplying && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsReplying(true);
+              }}
+              className="flex items-center gap-1 text-xs text-white/40 hover:text-violet-400 transition-colors mt-1"
+            >
+              <Reply size={11} />
+              Reply
+            </button>
+          )}
+        </div>
+
+        {/* Post thumbnail or follow button */}
+        <div className="flex-shrink-0 flex items-center gap-2">
+          {notif.type === "follow" ? (
+            <button
+              type="button"
+              onClick={handleFollowBack}
+              className={cn(
+                "text-xs px-3 py-1 rounded-lg font-medium transition-all",
+                isFollowedBack
+                  ? "bg-white/10 text-white/60 border border-white/20"
+                  : "bg-violet-600 text-white hover:bg-violet-500",
+              )}
+            >
+              {isFollowedBack ? "Following ✓" : "Follow back"}
+            </button>
+          ) : notif.postThumbnail ? (
+            notif.postThumbnail.startsWith("http") ? (
+              <img
+                src={notif.postThumbnail}
+                alt="Post"
+                className="w-11 h-11 rounded-lg object-cover"
+              />
+            ) : (
+              <div
+                className="w-11 h-11 rounded-lg overflow-hidden"
+                style={{ background: notif.postThumbnail }}
+              />
+            )
+          ) : null}
+          {!notif.isRead && (
+            <div className="w-2 h-2 rounded-full gradient-bg flex-shrink-0" />
+          )}
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm text-white/90 leading-snug">
-          <Link
-            to="/profile/$username"
-            params={{ username: notif.actor.username }}
-            className="font-semibold hover:text-primary transition-colors"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {notif.actor.username}
-          </Link>{" "}
-          <span className="text-white/60">{notif.text}</span>
-        </p>
-        <p className="text-xs text-white/30 mt-0.5">
-          {formatRelativeTime(notif.timestamp)}
-        </p>
-      </div>
-
-      {/* Post thumbnail or follow button */}
-      <div className="flex-shrink-0 flex items-center gap-2">
-        {notif.type === "follow" ? (
-          <GlassButton variant="outline" size="sm" className="text-xs">
-            Follow back
-          </GlassButton>
-        ) : notif.postThumbnail ? (
-          <div
-            className="w-11 h-11 rounded-lg overflow-hidden"
-            style={{ background: notif.postThumbnail }}
+      {/* Inline reply input */}
+      {isReplying && (
+        // biome-ignore lint/a11y/useKeyWithClickEvents: form stopPropagation; keyboard handled by inner input
+        <form
+          onSubmit={handleReplySubmit}
+          onClick={(e) => e.stopPropagation()}
+          className="mt-2 flex items-center gap-2 pl-12"
+        >
+          <input
+            type="text"
+            placeholder={`Reply to ${notif.actor.username}...`}
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            className="flex-1 rounded-full px-3 py-1.5 text-xs text-white placeholder:text-white/30 outline-none"
+            style={{
+              background: "rgba(255,255,255,0.07)",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setIsReplying(false);
+            }}
           />
-        ) : null}
-        {!notif.isRead && (
-          <div className="w-2 h-2 rounded-full gradient-bg flex-shrink-0" />
-        )}
-      </div>
+          <button
+            type="submit"
+            disabled={!replyText.trim()}
+            className="text-xs text-violet-400 hover:text-violet-300 disabled:opacity-40 transition-colors font-medium"
+          >
+            Send
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsReplying(false)}
+            className="text-xs text-white/30 hover:text-white/60 transition-colors"
+          >
+            Cancel
+          </button>
+        </form>
+      )}
     </motion.div>
   );
 }
@@ -160,7 +249,7 @@ export function NotificationsPage() {
             { value: "all", label: "All" },
             { value: "follows", label: "Follows" },
             { value: "likes", label: "Likes" },
-            { value: "comments", label: "Comments" },
+            { value: "replies", label: "Replies" },
             { value: "mentions", label: "Mentions" },
           ].map((tab) => (
             <TabsTrigger
@@ -185,24 +274,46 @@ export function NotificationsPage() {
           )}
         </TabsContent>
         <TabsContent value="follows" className="mt-0 space-y-1">
-          {byType(["follow"]).map((n, i) => (
-            <NotificationItem key={n.id} notif={n} index={i} />
-          ))}
+          {byType(["follow"]).length === 0 ? (
+            <div className="text-center py-16 text-white/30">
+              No follows yet
+            </div>
+          ) : (
+            byType(["follow"]).map((n, i) => (
+              <NotificationItem key={n.id} notif={n} index={i} />
+            ))
+          )}
         </TabsContent>
         <TabsContent value="likes" className="mt-0 space-y-1">
-          {byType(["like"]).map((n, i) => (
-            <NotificationItem key={n.id} notif={n} index={i} />
-          ))}
+          {byType(["like"]).length === 0 ? (
+            <div className="text-center py-16 text-white/30">No likes yet</div>
+          ) : (
+            byType(["like"]).map((n, i) => (
+              <NotificationItem key={n.id} notif={n} index={i} />
+            ))
+          )}
         </TabsContent>
-        <TabsContent value="comments" className="mt-0 space-y-1">
-          {byType(["comment"]).map((n, i) => (
-            <NotificationItem key={n.id} notif={n} index={i} />
-          ))}
+        <TabsContent value="replies" className="mt-0 space-y-1">
+          {byType(["comment"]).length === 0 ? (
+            <div className="text-center py-16 text-white/30">
+              No replies yet
+            </div>
+          ) : (
+            byType(["comment"]).map((n, i) => (
+              <NotificationItem key={n.id} notif={n} index={i} />
+            ))
+          )}
         </TabsContent>
         <TabsContent value="mentions" className="mt-0 space-y-1">
-          {byType(["mention"]).map((n, i) => (
-            <NotificationItem key={n.id} notif={n} index={i} />
-          ))}
+          {byType(["mention"]).length === 0 ? (
+            <div className="text-center py-16 text-white/30">
+              No mentions yet
+            </div>
+          ) : (
+            byType(["mention"]).map((n, i) => (
+              <NotificationItem key={n.id} notif={n} index={i} />
+            ))
+          )}
         </TabsContent>
       </Tabs>
     </div>

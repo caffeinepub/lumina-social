@@ -41,7 +41,7 @@ export function EditProfilePage() {
   );
   const [bio, setBio] = useState(currentUser?.bio ?? fallback.bio);
   const [website, setWebsite] = useState(
-    currentUser?.avatarUrl ? "" : fallback.websiteUrl,
+    currentUser?.websiteUrl ?? fallback.websiteUrl,
   );
   const [isPrivate, setIsPrivate] = useState(fallback.isPrivate);
   const [gender, setGender] = useState<string>("other");
@@ -70,7 +70,13 @@ export function EditProfilePage() {
   const handleSave = async () => {
     const finalAvatarUrl = avatarDataUrl || avatarPreview;
     // Always update local state immediately so the UI reflects the changes
-    updateUser({ displayName, username, bio, avatarUrl: finalAvatarUrl });
+    updateUser({
+      displayName,
+      username,
+      bio,
+      avatarUrl: finalAvatarUrl,
+      websiteUrl: website,
+    });
     try {
       await saveProfile.mutateAsync({
         displayName,
@@ -81,10 +87,11 @@ export function EditProfilePage() {
         avatarUrl: finalAvatarUrl,
         gender: Gender.other,
       });
+      toast.success("Profile saved to blockchain ✓");
     } catch {
       // Backend save failed, but local update already succeeded
+      toast.success("Profile updated!");
     }
-    toast.success("Profile updated!");
   };
 
   return (

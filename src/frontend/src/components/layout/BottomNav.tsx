@@ -16,7 +16,13 @@ export function BottomNav() {
   const { setIsCreateOpen } = useApp();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 glass-heavy border-t border-white/8 px-2 py-2 safe-area-pb">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40 glass-heavy border-t border-white/8 px-2"
+      style={{
+        paddingBottom: "max(8px, env(safe-area-inset-bottom))",
+        paddingTop: 8,
+      }}
+    >
       <div className="flex items-center justify-around max-w-lg mx-auto">
         {NAV_ITEMS.slice(0, 2).map((item) => {
           const isActive =
@@ -27,7 +33,7 @@ export function BottomNav() {
             <Link
               key={item.href}
               to={item.href}
-              className="flex flex-col items-center gap-0.5 p-2 min-w-[44px]"
+              className="flex flex-col items-center gap-0.5 min-w-[48px] min-h-[48px] justify-center"
               aria-label={item.label}
             >
               <Icon
@@ -46,7 +52,7 @@ export function BottomNav() {
         <button
           type="button"
           onClick={() => setIsCreateOpen(true)}
-          className="flex items-center justify-center w-11 h-11 rounded-full gradient-bg shadow-glow hover:scale-110 active:scale-95 transition-all duration-200"
+          className="flex items-center justify-center w-12 h-12 rounded-full gradient-bg shadow-glow hover:scale-110 active:scale-95 transition-all duration-200"
           aria-label="Create post"
         >
           <Plus size={22} className="text-white" />
@@ -61,7 +67,7 @@ export function BottomNav() {
             <Link
               key={item.href}
               to={item.href}
-              className="flex flex-col items-center gap-0.5 p-2 min-w-[44px]"
+              className="flex flex-col items-center gap-0.5 min-w-[48px] min-h-[48px] justify-center"
               aria-label={item.label}
             >
               <Icon

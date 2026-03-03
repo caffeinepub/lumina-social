@@ -4,14 +4,21 @@ import { StoryBar } from "@/components/feed/StoryBar";
 import { GlassAvatar } from "@/components/glass/GlassAvatar";
 import { GlassButton } from "@/components/glass/GlassButton";
 import { useApp } from "@/context/AppContext";
-import { MOCK_USERS, formatCount } from "@/data/mockData";
+import { MOCK_USERS } from "@/data/mockData";
 import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
+import { useState } from "react";
 
 function SuggestedUser({
   user,
   index,
 }: { user: (typeof MOCK_USERS)[0]; index: number }) {
+  const [isFollowing, setIsFollowing] = useState(user.isFollowing ?? false);
+
+  const handleFollow = () => {
+    setIsFollowing((prev) => !prev);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 12 }}
@@ -37,13 +44,18 @@ function SuggestedUser({
           <p className="text-xs text-white/40">{user.displayName}</p>
         </div>
       </div>
-      <GlassButton
-        variant="ghost"
-        size="sm"
-        className="text-primary hover:text-primary/80 text-xs"
+      <motion.button
+        type="button"
+        onClick={handleFollow}
+        whileTap={{ scale: 0.92 }}
+        className={`text-xs font-semibold px-3 py-1 rounded-full transition-all duration-200 ${
+          isFollowing
+            ? "bg-white/10 text-white/60 border border-white/20 hover:bg-white/15"
+            : "text-primary hover:text-primary/80"
+        }`}
       >
-        Follow
-      </GlassButton>
+        {isFollowing ? "Following" : "Follow"}
+      </motion.button>
     </motion.div>
   );
 }
@@ -67,7 +79,7 @@ export function HomePage() {
   return (
     <div className="max-w-[1200px] mx-auto flex min-h-screen">
       {/* Main feed */}
-      <div className="flex-1 max-w-[630px] mx-auto lg:mx-0 px-4 py-6">
+      <div className="flex-1 max-w-[630px] mx-auto lg:mx-0 px-0 sm:px-4 py-4 sm:py-6">
         <StoryBar />
 
         {sortedPosts.map((post, i) => (
