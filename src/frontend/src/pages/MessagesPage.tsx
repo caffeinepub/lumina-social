@@ -19,27 +19,31 @@ import {
 } from "@/components/ui/popover";
 import { useApp } from "@/context/AppContext";
 import {
-  MOCK_CONVERSATIONS,
-  MOCK_USERS,
-  formatRelativeTime,
-} from "@/data/mockData";
+  CHAT_THEME_PRESETS,
+  type ChatThemeId,
+  useTheme,
+} from "@/context/ThemeContext";
+import { formatRelativeTime } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import type { MockConversation, MockMessage } from "@/types";
 import { Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
   ArrowLeft,
+  Bell,
+  BellOff,
   ChevronDown,
-  Edit,
   ExternalLink,
   Flag,
   Forward,
+  Grid,
   Image,
   Info,
   MessageCircle,
   Mic,
   MicOff,
   MoreHorizontal,
+  Palette,
   Pause,
   Phone,
   Pin,
@@ -47,9 +51,12 @@ import {
   Search,
   Send,
   Share2,
+  ShieldAlert,
   Smile,
   Trash2,
+  UserX,
   Video,
+  X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
@@ -602,9 +609,9 @@ function getConvUsername(conv: MockConversation): string {
 }
 
 function getConvAvatar(conv: MockConversation): string {
-  if (conv.isGroup) return MOCK_USERS[2].avatarUrl;
+  if (conv.isGroup) return "";
   const other = conv.participants.find((p) => p.id !== LOGGED_IN_USER_ID);
-  return other?.avatarUrl ?? MOCK_USERS[1].avatarUrl;
+  return other?.avatarUrl ?? "";
 }
 
 function TypingIndicator() {
@@ -1275,7 +1282,14 @@ export function MessagesPage() {
     null,
   );
   const [messageText, setMessageText] = useState("");
-  const { messages, sendMessage } = useApp();
+  const {
+    messages,
+    sendMessage,
+    conversations,
+    updateConversation,
+    blockUser,
+  } = useApp();
+  const { getChatBackground, setChatTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -1308,6 +1322,11 @@ export function MessagesPage() {
   const [deletedForEveryone, setDeletedForEveryone] = useState<Set<string>>(
     new Set(),
   );
+  // Info panel state
+  const [infoPanelOpen, setInfoPanelOpen] = useState(false);
+  const [infoPanelTab, setInfoPanelTab] = useState<"main" | "medias" | "theme">(
+    "main",
+  );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesScrollRef = useRef<HTMLDivElement>(null);
@@ -1316,7 +1335,7 @@ export function MessagesPage() {
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const filteredConvs = [...MOCK_CONVERSATIONS]
+  const filteredConvs = [...conversations]
     .filter((c) => {
       const name = getConvName(c).toLowerCase();
       const uname = getConvUsername(c).toLowerCase();
@@ -1575,6 +1594,7 @@ export function MessagesPage() {
         minHeight: 0,
         overflow: "hidden",
         background: "#0a0a0a",
+        position: "relative",
       }}
     >
       {/* Chat header */}
@@ -1643,6 +1663,10 @@ export function MessagesPage() {
           </button>
           <button
             type="button"
+            onClick={() => {
+              setInfoPanelOpen(true);
+              setInfoPanelTab("main");
+            }}
             className="w-9 h-9 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/8 transition-all"
             aria-label="Chat info"
           >
@@ -1661,6 +1685,7 @@ export function MessagesPage() {
           padding: "16px 20px",
           scrollbarWidth: "thin",
           scrollbarColor: "rgba(255,255,255,0.1) transparent",
+          background: getChatBackground(selectedConv.id) ?? undefined,
         }}
       >
         <div className="space-y-2">
@@ -1934,6 +1959,7 @@ export function MessagesPage() {
         style={{
           borderTop: "1px solid rgba(255,255,255,0.06)",
           background: "#0a0a0a",
+          paddingBottom: "max(12px, env(safe-area-inset-bottom))",
         }}
       >
         {isRecording && (
@@ -2044,6 +2070,275 @@ export function MessagesPage() {
           )}
         </div>
       </div>
+      {/* Info Panel Overlay */}
+      <AnimatePresence>
+        {infoPanelOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="absolute inset-0 z-40 flex flex-col"
+            style={{
+              background: "rgba(10,10,14,0.98)",
+              backdropFilter: "blur(24px)",
+            }}
+          >
+            {/* Info panel header */}
+            <div
+              className="flex items-center gap-3 px-5 flex-shrink-0"
+              style={{
+                paddingTop: 14,
+                paddingBottom: 14,
+                borderBottom: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setInfoPanelOpen(false)}
+                className="text-white/60 hover:text-white transition-colors"
+                aria-label="Close"
+              >
+                <X size={20} />
+              </button>
+              <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                <img
+                  src={getConvAvatar(selectedConv)}
+                  alt={getConvName(selectedConv)}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-white text-sm">
+                  {getConvName(selectedConv)}
+                </p>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div
+              className="flex flex-shrink-0 border-b"
+              style={{ borderColor: "rgba(255,255,255,0.06)" }}
+            >
+              {(["main", "medias", "theme"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setInfoPanelTab(tab)}
+                  className="flex-1 py-3 text-xs font-medium transition-colors capitalize"
+                  style={
+                    infoPanelTab === tab
+                      ? { color: "white", borderBottom: "2px solid #7c3aed" }
+                      : { color: "rgba(255,255,255,0.4)" }
+                  }
+                >
+                  {tab === "main"
+                    ? "Info"
+                    : tab === "medias"
+                      ? "Media"
+                      : "Theme"}
+                </button>
+              ))}
+            </div>
+
+            <div
+              className="flex-1 overflow-y-auto p-5"
+              style={{ scrollbarWidth: "none" }}
+            >
+              {/* Main tab */}
+              {infoPanelTab === "main" && (
+                <div className="space-y-2">
+                  {[
+                    {
+                      icon: <UserX size={18} className="text-red-400" />,
+                      label: "Block User",
+                      sublabel: "They won't be able to message or find you",
+                      action: () => {
+                        const uname = getConvUsername(selectedConv);
+                        if (uname) blockUser(uname, "me");
+                        toast.success(
+                          `Blocked @${getConvUsername(selectedConv)}`,
+                        );
+                        setInfoPanelOpen(false);
+                      },
+                      danger: true,
+                    },
+                    {
+                      icon: (
+                        <ShieldAlert size={18} className="text-orange-400" />
+                      ),
+                      label: "Report User",
+                      sublabel: "Report inappropriate behavior",
+                      action: () => {
+                        setInfoPanelOpen(false);
+                        setReportModalOpen(true);
+                      },
+                      danger: false,
+                    },
+                    {
+                      icon: selectedConv.isMuted ? (
+                        <Bell size={18} className="text-white/60" />
+                      ) : (
+                        <BellOff size={18} className="text-white/60" />
+                      ),
+                      label: selectedConv.isMuted ? "Unmute Chat" : "Mute Chat",
+                      sublabel: selectedConv.isMuted
+                        ? "Re-enable notifications for this chat"
+                        : "Stop notifications for this chat",
+                      action: () => {
+                        updateConversation(selectedConv.id, {
+                          isMuted: !selectedConv.isMuted,
+                        });
+                        toast.success(
+                          selectedConv.isMuted ? "Chat unmuted" : "Chat muted",
+                        );
+                        setInfoPanelOpen(false);
+                      },
+                      danger: false,
+                    },
+                    {
+                      icon: <Grid size={18} className="text-violet-400" />,
+                      label: "Medias",
+                      sublabel: "View shared photos and videos",
+                      action: () => setInfoPanelTab("medias"),
+                      danger: false,
+                    },
+                    {
+                      icon: <Palette size={18} className="text-pink-400" />,
+                      label: "Chat Theme",
+                      sublabel: "Customize chat background",
+                      action: () => setInfoPanelTab("theme"),
+                      danger: false,
+                    },
+                  ].map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={item.action}
+                      className="w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left"
+                      style={{
+                        background: item.danger
+                          ? "rgba(239,68,68,0.06)"
+                          : "rgba(255,255,255,0.04)",
+                        border: item.danger
+                          ? "1px solid rgba(239,68,68,0.15)"
+                          : "1px solid rgba(255,255,255,0.06)",
+                      }}
+                    >
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{
+                          background: item.danger
+                            ? "rgba(239,68,68,0.12)"
+                            : "rgba(255,255,255,0.06)",
+                        }}
+                      >
+                        {item.icon}
+                      </div>
+                      <div>
+                        <p
+                          className="text-sm font-medium"
+                          style={{ color: item.danger ? "#f87171" : "white" }}
+                        >
+                          {item.label}
+                        </p>
+                        <p className="text-xs text-white/40 mt-0.5">
+                          {item.sublabel}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Medias tab */}
+              {infoPanelTab === "medias" &&
+                (() => {
+                  const convMsgs = messages[selectedConv.id] ?? [];
+                  const mediaMsgs = convMsgs.filter(
+                    (m) => m.type === "media" && m.mediaUrl,
+                  );
+                  return mediaMsgs.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-16 text-white/30">
+                      <Grid size={36} className="mb-3 opacity-40" />
+                      <p className="text-sm">No shared media yet</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-1">
+                      {mediaMsgs.map((m) => (
+                        <div
+                          key={m.id}
+                          className="aspect-square rounded-lg overflow-hidden bg-white/5"
+                        >
+                          {m.mediaType === "video" ? (
+                            <video
+                              src={m.mediaUrl}
+                              className="w-full h-full object-cover"
+                              muted
+                              playsInline
+                            >
+                              <track kind="captions" />
+                            </video>
+                          ) : (
+                            <img
+                              src={m.mediaUrl}
+                              alt="Shared media"
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+              {/* Theme tab */}
+              {infoPanelTab === "theme" && (
+                <div className="space-y-3">
+                  <p className="text-xs text-white/40 uppercase tracking-wider">
+                    Choose chat background
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {CHAT_THEME_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          setChatTheme(
+                            selectedConv.id,
+                            preset.id as ChatThemeId,
+                          );
+                          toast.success(`Theme: ${preset.label}`);
+                        }}
+                        className="flex flex-col items-center gap-2 p-3 rounded-2xl transition-all"
+                        style={{
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          background: "rgba(255,255,255,0.03)",
+                        }}
+                      >
+                        <div
+                          className="w-full h-16 rounded-xl"
+                          style={{
+                            background:
+                              preset.gradient ??
+                              "linear-gradient(135deg, #1a1a2a, #0a0a0f)",
+                          }}
+                        />
+                        <span className="text-xs text-white/70">
+                          {preset.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   ) : null;
 
@@ -2087,7 +2382,10 @@ export function MessagesPage() {
   // ─── Page layout ────────────────────────────────────────────────────────────
 
   return (
-    <div className="fixed inset-0 lg:left-[260px] flex overflow-hidden">
+    <div
+      className="fixed inset-0 lg:left-[260px] flex overflow-hidden"
+      style={{ height: "100dvh" }}
+    >
       {/* Sidebar */}
       <div
         className={cn(
@@ -2107,13 +2405,6 @@ export function MessagesPage() {
             >
               <span>Messages</span>
               <ChevronDown size={16} className="text-white/60" />
-            </button>
-            <button
-              type="button"
-              className="w-9 h-9 flex items-center justify-center rounded-full text-white hover:bg-white/8 transition-colors"
-              aria-label="New message"
-            >
-              <Edit size={20} />
             </button>
           </div>
 
@@ -2147,16 +2438,9 @@ export function MessagesPage() {
           <NotesPanel compact />
         </div>
 
-        {/* Messages heading + Requests link */}
-        <div className="flex items-center justify-between px-5 py-2.5 flex-shrink-0">
+        {/* Messages heading */}
+        <div className="flex items-center px-5 py-2.5 flex-shrink-0">
           <span className="text-sm font-semibold text-white">Messages</span>
-          <button
-            type="button"
-            className="text-xs hover:text-white/70 transition-colors"
-            style={{ color: "rgba(255,255,255,0.4)" }}
-          >
-            Requests
-          </button>
         </div>
 
         {/* Conversation list — CRITICAL: plain div with overflow-y: auto */}
@@ -2307,7 +2591,7 @@ export function MessagesPage() {
           setForwardMessage(null);
         }}
         message={forwardMessage}
-        conversations={MOCK_CONVERSATIONS}
+        conversations={conversations}
         onForward={handleForwardMessage}
       />
 

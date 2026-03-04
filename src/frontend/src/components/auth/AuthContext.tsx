@@ -146,6 +146,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Derive overall initializing state
   const isInitializing = iiIsInitializing;
 
+  function recordLoginEvent(): void {
+    try {
+      const loginEvent = {
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString(),
+        browser: navigator.userAgent.substring(0, 100),
+        platform: navigator.platform,
+        device: window.innerWidth < 768 ? "Mobile" : "Desktop",
+      };
+      const existing = JSON.parse(
+        localStorage.getItem("lumina_login_activity") ?? "[]",
+      ) as object[];
+      existing.unshift(loginEvent);
+      localStorage.setItem(
+        "lumina_login_activity",
+        JSON.stringify(existing.slice(0, 20)),
+      );
+    } catch {
+      // ignore
+    }
+  }
+
   function login(email: string, _password: string): boolean {
     setIsLoggingIn(true);
     try {
@@ -154,6 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const user = JSON.parse(stored) as StoredUser;
       if (user.email !== email) return false;
       setLocalUser(user);
+      recordLoginEvent();
       return true;
     } finally {
       setIsLoggingIn(false);
@@ -163,6 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   function signup(data: StoredUser): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     setLocalUser(data);
+    recordLoginEvent();
   }
 
   function logout(): void {

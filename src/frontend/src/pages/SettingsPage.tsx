@@ -1,6 +1,5 @@
 import { useAuthContext } from "@/components/auth/AuthContext";
 import { GlassButton } from "@/components/glass/GlassButton";
-import { GlassCard } from "@/components/glass/GlassCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,21 +20,31 @@ import {
 } from "@/components/ui/select";
 import { Toaster } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
-import { MOCK_USERS } from "@/data/mockData";
+import {
+  ACCENT_PRESETS,
+  type AccentThemeId,
+  useTheme,
+} from "@/context/ThemeContext";
+import {
+  getBlockedUsers,
+  getMutedUsers,
+  unblockUser,
+  unmuteUser,
+} from "@/utils/userRegistry";
 import { Link } from "@tanstack/react-router";
 import {
   Bell,
   ChevronDown,
   ChevronRight,
   Download,
-  Eye,
-  Globe,
   HelpCircle,
   Languages,
   Lock,
+  Monitor,
   Moon,
   Palette,
   Shield,
+  Smartphone,
   Sun,
   Trash2,
   User,
@@ -45,6 +54,23 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
+
+interface LoginEvent {
+  id: string;
+  timestamp: string;
+  browser: string;
+  platform: string;
+  device: string;
+}
+
+function parseBrowserName(ua: string): string {
+  if (ua.includes("Firefox")) return "Firefox";
+  if (ua.includes("Edg")) return "Edge";
+  if (ua.includes("Chrome")) return "Chrome";
+  if (ua.includes("Safari")) return "Safari";
+  if (ua.includes("Opera") || ua.includes("OPR")) return "Opera";
+  return "Browser";
+}
 
 interface SettingsSectionProps {
   title: string;
@@ -108,7 +134,8 @@ function SettingsRow({
 }
 
 export function SettingsPage() {
-  const { logout } = useAuthContext();
+  const { logout, currentUser } = useAuthContext();
+  const { accentTheme, setAccentTheme, isDark, setIsDark } = useTheme();
   const [privateAccount, setPrivateAccount] = useState(false);
   const [commentControl, setCommentControl] = useState("everyone");
   const [likesNotif, setLikesNotif] = useState(true);
@@ -116,11 +143,66 @@ export function SettingsPage() {
   const [followsNotif, setFollowsNotif] = useState(true);
   const [messagesNotif, setMessagesNotif] = useState(true);
   const [language, setLanguage] = useState("en");
-  const [theme, setTheme] = useState("dark");
   const [dataUsage, setDataUsage] = useState("auto");
 
-  const blockedUsers = MOCK_USERS.slice(5, 7);
-  const mutedUsers = MOCK_USERS.slice(3, 5);
+  const myUsername = currentUser?.username ?? "";
+  const [blockedList, setBlockedList] = useState<string[]>(() =>
+    getBlockedUsers(myUsername),
+  );
+  const [mutedList, setMutedList] = useState<string[]>(() =>
+    getMutedUsers(myUsername),
+  );
+  const [loginActivity] = useState<LoginEvent[]>(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("lumina_login_activity") ?? "[]",
+      ) as LoginEvent[];
+    } catch {
+      return [];
+    }
+  });
+
+  const handleUnblock = (targetUsername: string) => {
+    unblockUser(myUsername, targetUsername);
+    setBlockedList((prev) => prev.filter((u) => u !== targetUsername));
+    toast.success(`Unblocked @${targetUsername}`);
+  };
+
+  const handleUnmute = (targetUsername: string) => {
+    unmuteUser(myUsername, targetUsername);
+    setMutedList((prev) => prev.filter((u) => u !== targetUsername));
+    toast.success(`Unmuted @${targetUsername}`);
+  };
+
+  const handleDownloadData = () => {
+    const data = {
+      username: currentUser?.username,
+      displayName: currentUser?.displayName,
+      bio: currentUser?.bio,
+      posts: JSON.parse(localStorage.getItem("lumina_posts") ?? "[]"),
+      reels: JSON.parse(localStorage.getItem("lumina_reels") ?? "[]"),
+      exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `lumina-data-${myUsername}-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Data download started");
+  };
+
+  const handleDeleteAccount = () => {
+    // Clear all lumina_ keys
+    const keys = Object.keys(localStorage).filter((k) =>
+      k.startsWith("lumina_"),
+    );
+    for (const k of keys) localStorage.removeItem(k);
+    logout();
+  };
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-3">
@@ -134,6 +216,16 @@ export function SettingsPage() {
           className="flex items-center justify-between hover:text-primary transition-colors group"
         >
           <p className="text-sm">Edit Profile</p>
+          <ChevronRight
+            size={16}
+            className="text-white/30 group-hover:text-primary transition-colors"
+          />
+        </Link>
+        <Link
+          to="/accounts-centre"
+          className="flex items-center justify-between hover:text-primary transition-colors group"
+        >
+          <p className="text-sm">Accounts Centre</p>
           <ChevronRight
             size={16}
             className="text-white/30 group-hover:text-primary transition-colors"
@@ -183,20 +275,25 @@ export function SettingsPage() {
 
       {/* Blocked */}
       <SettingsSection title="Blocked Users" icon={<UserX size={18} />}>
-        {blockedUsers.length === 0 ? (
+        {blockedList.length === 0 ? (
           <p className="text-sm text-white/40">No blocked users</p>
         ) : (
-          blockedUsers.map((user) => (
-            <div key={user.id} className="flex items-center justify-between">
+          blockedList.map((username) => (
+            <div key={username} className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <img
-                  src={user.avatarUrl}
-                  alt=""
-                  className="w-8 h-8 rounded-full"
-                />
-                <p className="text-sm">{user.username}</p>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">
+                    {username[0]?.toUpperCase()}
+                  </span>
+                </div>
+                <p className="text-sm">@{username}</p>
               </div>
-              <GlassButton variant="outline" size="sm" className="text-xs">
+              <GlassButton
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={() => handleUnblock(username)}
+              >
                 Unblock
               </GlassButton>
             </div>
@@ -206,21 +303,30 @@ export function SettingsPage() {
 
       {/* Muted */}
       <SettingsSection title="Muted Accounts" icon={<VolumeX size={18} />}>
-        {mutedUsers.map((user) => (
-          <div key={user.id} className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <img
-                src={user.avatarUrl}
-                alt=""
-                className="w-8 h-8 rounded-full"
-              />
-              <p className="text-sm">{user.username}</p>
+        {mutedList.length === 0 ? (
+          <p className="text-sm text-white/40">No muted accounts</p>
+        ) : (
+          mutedList.map((username) => (
+            <div key={username} className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">
+                    {username[0]?.toUpperCase()}
+                  </span>
+                </div>
+                <p className="text-sm">@{username}</p>
+              </div>
+              <GlassButton
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={() => handleUnmute(username)}
+              >
+                Unmute
+              </GlassButton>
             </div>
-            <GlassButton variant="outline" size="sm" className="text-xs">
-              Unmute
-            </GlassButton>
-          </div>
-        ))}
+          ))
+        )}
       </SettingsSection>
 
       {/* Notifications */}
@@ -244,14 +350,14 @@ export function SettingsPage() {
         <SettingsRow label="Appearance">
           <div className="flex gap-2">
             {[
-              { value: "dark", icon: <Moon size={14} />, label: "Dark" },
-              { value: "light", icon: <Sun size={14} />, label: "Light" },
+              { value: true, icon: <Moon size={14} />, label: "Dark" },
+              { value: false, icon: <Sun size={14} />, label: "Light" },
             ].map((opt) => (
               <GlassButton
-                key={opt.value}
-                variant={theme === opt.value ? "gradient" : "glass"}
+                key={opt.label}
+                variant={isDark === opt.value ? "gradient" : "glass"}
                 size="sm"
-                onClick={() => setTheme(opt.value)}
+                onClick={() => setIsDark(opt.value)}
                 className="text-xs"
               >
                 {opt.icon}
@@ -260,6 +366,42 @@ export function SettingsPage() {
             ))}
           </div>
         </SettingsRow>
+        <div>
+          <p className="text-sm text-white/80 mb-3">Accent Color</p>
+          <div className="grid grid-cols-3 gap-2">
+            {ACCENT_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => setAccentTheme(preset.id as AccentThemeId)}
+                className="relative flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all hover:bg-white/5"
+                style={
+                  accentTheme === preset.id
+                    ? {
+                        background: "rgba(255,255,255,0.08)",
+                        border: "1px solid rgba(255,255,255,0.2)",
+                      }
+                    : {
+                        border: "1px solid rgba(255,255,255,0.05)",
+                      }
+                }
+              >
+                <div
+                  className="w-10 h-10 rounded-full"
+                  style={{ background: preset.gradient }}
+                />
+                <span className="text-[10px] text-white/60 text-center leading-tight">
+                  {preset.label}
+                </span>
+                {accentTheme === preset.id && (
+                  <div className="absolute top-1 right-1 w-3 h-3 rounded-full bg-white/90 flex items-center justify-center">
+                    <span className="text-black text-[8px] font-bold">✓</span>
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
       </SettingsSection>
 
       {/* Language */}
@@ -271,6 +413,7 @@ export function SettingsPage() {
             </SelectTrigger>
             <SelectContent className="bg-black/90 border-white/10 text-white text-xs">
               <SelectItem value="en">English</SelectItem>
+              <SelectItem value="hi">हिन्दी</SelectItem>
               <SelectItem value="es">Español</SelectItem>
               <SelectItem value="fr">Français</SelectItem>
               <SelectItem value="ja">日本語</SelectItem>
@@ -296,11 +439,56 @@ export function SettingsPage() {
         </SettingsRow>
         <button
           type="button"
-          onClick={() => toast.success("Data download initiated!")}
+          onClick={handleDownloadData}
           className="w-full text-left text-sm text-primary hover:text-primary/80 transition-colors"
         >
           Download your data
         </button>
+      </SettingsSection>
+
+      {/* Security */}
+      <SettingsSection title="Security" icon={<Lock size={18} />}>
+        <SettingsRow label="Two-Factor Authentication">
+          <Switch
+            checked={false}
+            onCheckedChange={() => toast.info("2FA setup coming soon")}
+          />
+        </SettingsRow>
+        <div>
+          <p className="text-sm text-white/80 mb-3">Login Activity</p>
+          {loginActivity.length === 0 ? (
+            <p className="text-xs text-white/40">No login activity yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {loginActivity.map((event) => (
+                <div
+                  key={event.id}
+                  className="flex items-center gap-3 rounded-xl p-3"
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.07)",
+                  }}
+                >
+                  <div className="flex-shrink-0 text-white/40">
+                    {event.device === "Mobile" ? (
+                      <Smartphone size={16} />
+                    ) : (
+                      <Monitor size={16} />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-white/80">
+                      {parseBrowserName(event.browser)} · {event.device}
+                    </p>
+                    <p className="text-[10px] text-white/35 truncate">
+                      {new Date(event.timestamp).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </SettingsSection>
 
       {/* Help */}
@@ -315,6 +503,7 @@ export function SettingsPage() {
             type="button"
             key={item}
             className="w-full flex items-center justify-between hover:text-primary transition-colors group"
+            onClick={() => toast.info(`${item} — coming soon`)}
           >
             <p className="text-sm">{item}</p>
             <ChevronRight
@@ -352,7 +541,7 @@ export function SettingsPage() {
               </AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-white hover:bg-destructive/80"
-                onClick={logout}
+                onClick={handleDeleteAccount}
               >
                 Delete Account
               </AlertDialogAction>

@@ -4,14 +4,9 @@ import { GlassButton } from "@/components/glass/GlassButton";
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApp } from "@/context/AppContext";
-import {
-  MOCK_HIGHLIGHTS,
-  MOCK_REELS,
-  MOCK_STORIES,
-  MOCK_USERS,
-  formatCount,
-} from "@/data/mockData";
-import type { MockReel } from "@/types";
+import { formatCount } from "@/data/mockData";
+import type { MockPost, MockReel } from "@/types";
+import { getUser } from "@/utils/userRegistry";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
   Bookmark,
@@ -22,10 +17,13 @@ import {
   Lock,
   MessageCircle,
   MoreHorizontal,
+  Pencil,
   Play,
   Plus,
+  Send,
   Settings,
   Tag,
+  Trash2,
   UserCheck,
   UserPlus,
   X,
@@ -34,8 +32,290 @@ import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-function PostGrid({ posts }: { posts: ReturnType<typeof useApp>["posts"] }) {
-  const [selectedPost, setSelectedPost] = useState<string | null>(null);
+function PostDetailModal({
+  post,
+  onClose,
+  isOwn,
+}: {
+  post: MockPost;
+  onClose: () => void;
+  isOwn: boolean;
+}) {
+  const { toggleLike, addComment, deletePost } = useApp();
+  const { currentUser } = useAuthContext();
+  const [commentText, setCommentText] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editCaption, setEditCaption] = useState(post.caption);
+
+  // Get the live post from context
+  const { posts } = useApp();
+  const livePost = posts.find((p) => p.id === post.id) ?? post;
+
+  const handleAddComment = () => {
+    if (!commentText.trim() || !currentUser) return;
+    addComment(livePost.id, commentText.trim(), {
+      id: "me",
+      username: currentUser.username,
+      displayName: currentUser.displayName,
+      avatarUrl: currentUser.avatarUrl ?? "",
+      bio: "",
+      websiteUrl: "",
+      isPrivate: false,
+      followersCount: 0,
+      followingCount: 0,
+      postsCount: 0,
+      isFollowing: false,
+      isVerified: false,
+    });
+    setCommentText("");
+  };
+
+  const handleDelete = () => {
+    deletePost(livePost.id);
+    toast.success("Post deleted");
+    onClose();
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0, y: 12 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 12 }}
+        transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
+        className="max-w-md w-full overflow-hidden rounded-2xl flex flex-col max-h-[90vh]"
+        style={{
+          background: "rgba(14,14,20,0.97)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          backdropFilter: "blur(40px)",
+          boxShadow: "0 32px 64px rgba(0,0,0,0.7)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/8 flex-shrink-0">
+          <p className="text-sm font-semibold text-white">Post</p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-all"
+            aria-label="Close"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Media */}
+        <div className="flex-shrink-0">
+          {livePost.mediaType === "video" ? (
+            <video
+              src={livePost.imageUrl}
+              className="w-full aspect-square object-cover"
+              controls
+              autoPlay
+              loop
+              playsInline
+            >
+              <track kind="captions" />
+            </video>
+          ) : (
+            <img
+              src={livePost.imageUrl}
+              alt={livePost.caption}
+              className="w-full aspect-square object-cover"
+            />
+          )}
+        </div>
+
+        {/* Actions + caption */}
+        <div className="px-4 pt-3 pb-2 flex-shrink-0">
+          <div className="flex items-center gap-4 mb-2">
+            <button
+              type="button"
+              onClick={() => toggleLike(livePost.id)}
+              className="flex items-center gap-1.5 text-sm transition-all"
+              aria-label="Like"
+            >
+              <Heart
+                size={20}
+                className={
+                  livePost.isLiked
+                    ? "fill-red-500 text-red-500"
+                    : "text-white/60"
+                }
+              />
+              <span
+                className={livePost.isLiked ? "text-red-400" : "text-white/60"}
+              >
+                {formatCount(livePost.likes)}
+              </span>
+            </button>
+            <div className="flex items-center gap-1.5 text-sm text-white/40">
+              <MessageCircle size={18} />
+              <span>{livePost.comments.length}</span>
+            </div>
+            {isOwn && (
+              <div className="ml-auto flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(!isEditing)}
+                  className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                >
+                  <Pencil size={13} />
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors"
+                >
+                  <Trash2 size={13} />
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+
+          {isEditing ? (
+            <div className="mb-2">
+              <textarea
+                className="w-full rounded-xl px-3 py-2 text-sm text-white placeholder:text-white/30 outline-none resize-none"
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }}
+                rows={2}
+                value={editCaption}
+                onChange={(e) => setEditCaption(e.target.value)}
+              />
+              <div className="flex gap-2 mt-1.5">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="text-xs text-white/40 hover:text-white/70 transition-colors px-3 py-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    toast.success("Caption updated");
+                    setIsEditing(false);
+                  }}
+                  className="text-xs text-white font-medium px-3 py-1 rounded-lg transition-all"
+                  style={{
+                    background: "linear-gradient(135deg, #7c3aed, #db2777)",
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          ) : (
+            livePost.caption && (
+              <p className="text-sm text-white/80 mb-2 leading-relaxed">
+                {livePost.caption}
+              </p>
+            )
+          )}
+        </div>
+
+        {/* Comments */}
+        <div
+          className="flex-1 overflow-y-auto px-4 pb-2 space-y-2 min-h-0"
+          style={{
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgba(255,255,255,0.1) transparent",
+          }}
+        >
+          {livePost.comments.length === 0 && (
+            <p className="text-xs text-white/30 text-center py-4">
+              No comments yet. Be the first!
+            </p>
+          )}
+          {livePost.comments.map((comment) => (
+            <div key={comment.id} className="flex items-start gap-2.5">
+              <div
+                className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden"
+                style={{
+                  background: "linear-gradient(135deg, #7c3aed, #db2777)",
+                }}
+              >
+                {comment.author.avatarUrl ? (
+                  <img
+                    src={comment.author.avatarUrl}
+                    alt={comment.author.username}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">
+                      {comment.author.username[0]?.toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-semibold text-white mr-1.5">
+                  {comment.author.username}
+                </span>
+                <span className="text-xs text-white/70">{comment.text}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Comment input */}
+        <div
+          className="flex items-center gap-2 px-4 py-3 flex-shrink-0"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}
+        >
+          <input
+            type="text"
+            placeholder="Add a comment..."
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
+            className="flex-1 rounded-full px-4 py-2 text-sm text-white placeholder:text-white/30 outline-none"
+            style={{
+              background: "rgba(255,255,255,0.07)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              fontSize: 14,
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleAddComment}
+            disabled={!commentText.trim()}
+            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40 hover:opacity-80 transition-opacity"
+            style={{ background: "linear-gradient(135deg, #7c3aed, #db2777)" }}
+            aria-label="Post comment"
+          >
+            <Send size={14} className="text-white" />
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function PostGrid({
+  posts,
+  isOwn = false,
+}: {
+  posts: ReturnType<typeof useApp>["posts"];
+  isOwn?: boolean;
+}) {
+  const [selectedPost, setSelectedPost] = useState<MockPost | null>(null);
 
   if (posts.length === 0) {
     return (
@@ -55,7 +335,7 @@ function PostGrid({ posts }: { posts: ReturnType<typeof useApp>["posts"] }) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.03 }}
-            onClick={() => setSelectedPost(post.id)}
+            onClick={() => setSelectedPost(post)}
             type="button"
             className="aspect-square overflow-hidden cursor-pointer group relative bg-black/20"
             aria-label="View post"
@@ -87,58 +367,14 @@ function PostGrid({ posts }: { posts: ReturnType<typeof useApp>["posts"] }) {
         ))}
       </div>
 
-      {/* Post detail modal */}
       <AnimatePresence>
         {selectedPost && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
-            onClick={() => setSelectedPost(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="glass-card max-w-sm w-full overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {(() => {
-                const post = posts.find((p) => p.id === selectedPost);
-                if (!post) return null;
-                return (
-                  <>
-                    {post.mediaType === "video" ? (
-                      <video
-                        src={post.imageUrl}
-                        className="w-full aspect-square object-cover"
-                        controls
-                        autoPlay
-                        loop
-                        playsInline
-                      >
-                        <track kind="captions" />
-                      </video>
-                    ) : (
-                      <img
-                        src={post.imageUrl}
-                        alt={post.caption}
-                        className="w-full aspect-square object-cover"
-                      />
-                    )}
-                    <div className="p-4">
-                      <p className="text-sm text-white/80">{post.caption}</p>
-                      <p className="text-xs text-white/40 mt-2">
-                        {formatCount(post.likes)} likes · {post.comments.length}{" "}
-                        comments
-                      </p>
-                    </div>
-                  </>
-                );
-              })()}
-            </motion.div>
-          </motion.div>
+          <PostDetailModal
+            key="post-detail"
+            post={selectedPost}
+            isOwn={isOwn}
+            onClose={() => setSelectedPost(null)}
+          />
         )}
       </AnimatePresence>
     </>
@@ -238,6 +474,15 @@ function ReelOverlay({
 function ReelGrid({ reels }: { reels: MockReel[] }) {
   const [selectedReel, setSelectedReel] = useState<MockReel | null>(null);
 
+  if (reels.length === 0) {
+    return (
+      <div className="text-center py-16 text-white/30">
+        <Film size={40} className="mx-auto mb-3 opacity-50" />
+        <p>No reels yet</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="grid grid-cols-3 gap-0.5">
@@ -290,17 +535,44 @@ function ReelGrid({ reels }: { reels: MockReel[] }) {
 export function ProfilePage() {
   const { username } = useParams({ strict: false });
   const navigate = useNavigate();
-  const { posts, savedPosts } = useApp();
+  const {
+    posts,
+    savedPosts,
+    reels,
+    stories,
+    followUser,
+    unfollowUser,
+    isFollowing,
+  } = useApp();
   const { currentUser } = useAuthContext();
-  const [isFollowing, setIsFollowing] = useState(false);
 
   const isOwnProfile =
     username === "me" ||
     username === currentUser?.username ||
     (!username && !!currentUser);
 
-  const fallbackUser =
-    MOCK_USERS.find((u) => u.username === username) ?? MOCK_USERS[2];
+  // Build a user object from registry or defaults
+  const registryUser = username && !isOwnProfile ? getUser(username) : null;
+
+  const fallbackUser = {
+    id: username ?? "me",
+    username:
+      registryUser?.username ?? username ?? currentUser?.username ?? "user",
+    displayName:
+      registryUser?.displayName ??
+      username ??
+      currentUser?.displayName ??
+      "User",
+    avatarUrl: registryUser?.avatarUrl ?? "",
+    bio: registryUser?.bio ?? "",
+    websiteUrl: registryUser?.websiteUrl ?? "",
+    isPrivate: registryUser?.isPrivate ?? false,
+    followersCount: 0,
+    followingCount: 0,
+    postsCount: 0,
+    isFollowing: false,
+    isVerified: false,
+  };
 
   // For own profile, build a user object that reflects stored account data
   const ownProfileUser =
@@ -322,18 +594,38 @@ export function ProfilePage() {
 
   const user = isOwnProfile && ownProfileUser ? ownProfileUser : fallbackUser;
 
+  const myUsername = currentUser?.username ?? "";
+  const targetUsername = user.username;
+  const followed = isFollowing(targetUsername, myUsername);
+
   const userPosts = posts.filter((p) => {
-    if (isOwnProfile) return true;
+    if (isOwnProfile)
+      return p.author.username === myUsername || p.author.id === "me";
     return p.author.username === username;
   });
+
+  const userReels = reels.filter((r) => {
+    if (isOwnProfile)
+      return r.author.username === myUsername || r.author.id === "me";
+    return r.author.username === username;
+  });
+
+  const hasStory = stories.some(
+    (s) =>
+      s.author.username === user.username ||
+      (isOwnProfile && s.author.id === "me"),
+  );
 
   const totalLikes = userPosts.reduce((sum, p) => sum + p.likes, 0);
 
   const handleFollow = () => {
-    setIsFollowing(!isFollowing);
-    toast(isFollowing ? "Unfollowed" : `Following ${user.username}`, {
-      duration: 2000,
-    });
+    if (followed) {
+      unfollowUser(targetUsername, myUsername);
+      toast(`Unfollowed @${targetUsername}`, { duration: 2000 });
+    } else {
+      followUser(targetUsername, myUsername);
+      toast(`Following @${targetUsername}`, { duration: 2000 });
+    }
   };
 
   return (
@@ -347,12 +639,12 @@ export function ProfilePage() {
             src={user.avatarUrl}
             alt={user.displayName}
             size="xl"
-            hasStory={MOCK_STORIES.some((s) => s.author.id === fallbackUser.id)}
+            hasStory={hasStory}
             isViewed={false}
             onClick={() =>
               navigate({
                 to: "/stories/$userId",
-                params: { userId: fallbackUser.id },
+                params: { userId: user.id },
               })
             }
           />
@@ -365,12 +657,7 @@ export function ProfilePage() {
                   <h1 className="text-xl font-bold text-white">
                     {user.username}
                   </h1>
-                  {fallbackUser.isVerified && (
-                    <div className="w-4.5 h-4.5 rounded-full gradient-bg flex items-center justify-center">
-                      <span className="text-[9px] text-white font-bold">✓</span>
-                    </div>
-                  )}
-                  {fallbackUser.isPrivate && (
+                  {user.isPrivate && (
                     <Lock size={14} className="text-white/40" />
                   )}
                 </div>
@@ -401,12 +688,12 @@ export function ProfilePage() {
               ) : (
                 <div className="flex gap-2">
                   <GlassButton
-                    variant={isFollowing ? "glass" : "gradient"}
+                    variant={followed ? "glass" : "gradient"}
                     size="sm"
                     onClick={handleFollow}
-                    glow={!isFollowing}
+                    glow={!followed}
                   >
-                    {isFollowing ? (
+                    {followed ? (
                       <>
                         <UserCheck size={14} />
                         Following
@@ -435,16 +722,13 @@ export function ProfilePage() {
               {[
                 {
                   label: "posts",
-                  value: isOwnProfile
-                    ? userPosts.length || user.postsCount
-                    : userPosts.length || fallbackUser.postsCount,
+                  value: userPosts.length,
                 },
                 {
                   label: "followers",
                   value: isOwnProfile
                     ? (user.followersCount ?? 0)
-                    : fallbackUser.followersCount +
-                      (isFollowing && !fallbackUser.isFollowing ? 1 : 0),
+                    : fallbackUser.followersCount + (followed ? 1 : 0),
                 },
                 {
                   label: "following",
@@ -471,17 +755,19 @@ export function ProfilePage() {
         {/* Bio */}
         <div className="mb-4">
           {user.bio && (
-            <p className="text-sm text-white/80 leading-relaxed">{user.bio}</p>
+            <p className="text-sm text-white/80 leading-relaxed whitespace-pre-line">
+              {user.bio}
+            </p>
           )}
-          {fallbackUser.websiteUrl && (
+          {user.websiteUrl && (
             <a
-              href={`https://${fallbackUser.websiteUrl}`}
+              href={`https://${user.websiteUrl}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1 mt-1"
             >
               <Globe size={12} />
-              {fallbackUser.websiteUrl}
+              {user.websiteUrl}
             </a>
           )}
         </div>
@@ -511,40 +797,19 @@ export function ProfilePage() {
           </motion.div>
         )}
 
-        {/* Story highlights */}
+        {/* Story highlights — "New" button only, no fake highlights */}
         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
           <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
             <button
               type="button"
               className="w-16 h-16 rounded-full glass border border-dashed border-white/30 flex items-center justify-center hover:border-white/50 hover:bg-white/5 transition-all duration-200"
               aria-label="Add highlight"
+              onClick={() => toast.info("Highlights coming soon")}
             >
               <Plus size={20} className="text-white/50" />
             </button>
             <span className="text-xs text-white/40">New</span>
           </div>
-
-          {MOCK_HIGHLIGHTS.map((h) => (
-            <div
-              key={h.id}
-              className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer group"
-            >
-              <div
-                className="w-16 h-16 rounded-full p-0.5 group-hover:scale-105 transition-transform duration-200"
-                style={{ background: h.coverGradient }}
-              >
-                <div className="w-full h-full rounded-full bg-background p-0.5">
-                  <div
-                    className="w-full h-full rounded-full flex items-center justify-center"
-                    style={{ background: h.coverGradient, opacity: 0.8 }}
-                  />
-                </div>
-              </div>
-              <span className="text-xs text-white/50 group-hover:text-white/70 transition-colors">
-                {h.title}
-              </span>
-            </div>
-          ))}
         </div>
       </div>
 
@@ -568,10 +833,10 @@ export function ProfilePage() {
         </TabsList>
 
         <TabsContent value="posts" className="mt-0">
-          <PostGrid posts={userPosts} />
+          <PostGrid posts={userPosts} isOwn={isOwnProfile} />
         </TabsContent>
         <TabsContent value="reels" className="mt-0">
-          <ReelGrid reels={MOCK_REELS} />
+          <ReelGrid reels={userReels} />
         </TabsContent>
         <TabsContent value="tagged" className="mt-0">
           <div className="text-center py-16 text-white/30">
@@ -586,7 +851,7 @@ export function ProfilePage() {
               <p>No saved posts yet</p>
             </div>
           ) : (
-            <PostGrid posts={savedPosts} />
+            <PostGrid posts={savedPosts} isOwn={false} />
           )}
         </TabsContent>
       </Tabs>

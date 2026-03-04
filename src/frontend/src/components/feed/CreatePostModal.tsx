@@ -7,15 +7,82 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/context/AppContext";
-import { MOCK_USERS } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import type { MockPost } from "@/types";
 import { Globe, Lock, MapPin, Smile, Tag, Upload, X } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
+
+// Compact emoji list for post emoji picker
+const POST_EMOJIS = [
+  "😀",
+  "😂",
+  "🥰",
+  "😍",
+  "🤩",
+  "😎",
+  "🥳",
+  "😜",
+  "🤔",
+  "😴",
+  "❤️",
+  "🧡",
+  "💛",
+  "💚",
+  "💙",
+  "💜",
+  "🖤",
+  "🤍",
+  "🔥",
+  "✨",
+  "⭐",
+  "🌟",
+  "💫",
+  "🎉",
+  "🎊",
+  "🙌",
+  "👏",
+  "💪",
+  "🤝",
+  "👍",
+  "🌸",
+  "🌺",
+  "🌻",
+  "🌹",
+  "🍀",
+  "🌈",
+  "🌊",
+  "🌙",
+  "☀️",
+  "⚡",
+  "🍕",
+  "🍔",
+  "🍦",
+  "🎂",
+  "🍰",
+  "🎵",
+  "🎶",
+  "🎨",
+  "🎬",
+  "📸",
+  "🚀",
+  "✈️",
+  "🏆",
+  "💎",
+  "🎯",
+  "🔮",
+  "🌍",
+  "🐶",
+  "🐱",
+  "🦋",
+];
 import { toast } from "sonner";
 
 function getRandomGradient() {
@@ -43,9 +110,29 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const captionRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const { addPost } = useApp();
   const { currentUser } = useAuthContext();
+
+  const handleEmojiSelect = (emoji: string) => {
+    const el = captionRef.current;
+    if (el) {
+      const start = el.selectionStart ?? caption.length;
+      const end = el.selectionEnd ?? caption.length;
+      const next = caption.slice(0, start) + emoji + caption.slice(end);
+      setCaption(next);
+      // Restore cursor after emoji
+      requestAnimationFrame(() => {
+        el.focus();
+        el.setSelectionRange(start + emoji.length, start + emoji.length);
+      });
+    } else {
+      setCaption((prev) => prev + emoji);
+    }
+    setEmojiOpen(false);
+  };
 
   const handleFile = useCallback((file: File) => {
     if (file.type.startsWith("video/")) {
@@ -93,7 +180,20 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
           isFollowing: false,
           isVerified: false,
         }
-      : MOCK_USERS[1];
+      : {
+          id: "anon",
+          username: "user",
+          displayName: "User",
+          bio: "",
+          avatarUrl: "",
+          websiteUrl: "",
+          isPrivate: false,
+          followersCount: 0,
+          followingCount: 0,
+          postsCount: 0,
+          isFollowing: false,
+          isVerified: false,
+        };
 
     const newPost: MockPost = {
       id: `post_${Date.now()}`,
@@ -227,6 +327,7 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
           {/* Caption */}
           <div>
             <Textarea
+              ref={captionRef}
               placeholder="Write a caption..."
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
@@ -234,13 +335,41 @@ export function CreatePostModal({ open, onClose }: CreatePostModalProps) {
               className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-primary/50 resize-none rounded-xl"
             />
             <div className="flex justify-between items-center mt-1">
-              <button
-                type="button"
-                className="text-white/40 hover:text-white/60 transition-colors"
-                aria-label="Add emoji"
-              >
-                <Smile size={16} />
-              </button>
+              <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-white/40 hover:text-white/70 transition-colors p-1 rounded-lg hover:bg-white/5"
+                    aria-label="Add emoji"
+                    data-ocid="post.emoji.button"
+                  >
+                    <Smile size={16} />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  side="top"
+                  align="start"
+                  className="p-2 border rounded-2xl shadow-2xl w-72"
+                  style={{
+                    background: "rgba(18,18,28,0.97)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    backdropFilter: "blur(20px)",
+                  }}
+                >
+                  <div className="grid grid-cols-10 gap-0.5 max-h-40 overflow-y-auto">
+                    {POST_EMOJIS.map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => handleEmojiSelect(emoji)}
+                        className="text-xl p-1 rounded hover:bg-white/10 transition-colors hover:scale-110 active:scale-95"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
               <span className="text-xs text-white/30">
                 {caption.length}/2200
               </span>

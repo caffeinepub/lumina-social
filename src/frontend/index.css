@@ -94,6 +94,21 @@ body {
     color-scheme: dark;
   }
 
+  /* Light mode overrides — applied when .dark class is NOT on html */
+  html:not(.dark) {
+    color-scheme: light;
+    --background: 0.95 0.005 270;
+    --foreground: 0.12 0.01 270;
+    --card: 0.92 0.008 270;
+    --card-foreground: 0.12 0.01 270;
+    --popover: 0.93 0.008 270;
+    --popover-foreground: 0.12 0.01 270;
+    --muted: 0.88 0.01 270;
+    --muted-foreground: 0.45 0.04 270;
+    --border: 0 0 0 / 12%;
+    --input: 0 0 0 / 8%;
+  }
+
   body {
     @apply bg-background text-foreground;
     background: radial-gradient(
@@ -109,6 +124,15 @@ body {
       oklch(0.07 0.015 270);
     min-height: 100vh;
     font-family: "Outfit", "Sora", system-ui, sans-serif;
+  }
+
+  html:not(.dark) body {
+    background: radial-gradient(
+        ellipse 80% 60% at 50% -10%,
+        oklch(0.88 0.04 280 / 0.5),
+        transparent
+      ),
+      oklch(0.96 0.005 270);
   }
 
   ::-webkit-scrollbar {

@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApp } from "@/context/AppContext";
-import { MOCK_POSTS, MOCK_USERS, formatCount } from "@/data/mockData";
+import { formatCount } from "@/data/mockData";
 import { useAllUserProfiles, useIsAdmin } from "@/hooks/useBackend";
 import { cn } from "@/lib/utils";
+import { getAllUsers } from "@/utils/userRegistry";
 import {
   AlertTriangle,
   Ban,
@@ -65,24 +66,24 @@ const MOCK_REPORTS = [
   {
     id: "r1",
     type: "spam",
-    reporter: MOCK_USERS[1],
-    reported: MOCK_USERS[3],
+    reporter: { username: "user1" },
+    reported: { username: "user2" },
     content: "Post promoting spam links",
     status: "pending",
   },
   {
     id: "r2",
     type: "harassment",
-    reporter: MOCK_USERS[2],
-    reported: MOCK_USERS[6],
+    reporter: { username: "user3" },
+    reported: { username: "user4" },
     content: "Harassing comments",
     status: "pending",
   },
   {
     id: "r3",
     type: "misinformation",
-    reporter: MOCK_USERS[4],
-    reported: MOCK_USERS[5],
+    reporter: { username: "user5" },
+    reported: { username: "user6" },
     content: "False medical claims",
     status: "resolved",
   },
@@ -93,6 +94,7 @@ export function AdminPage() {
   useAllUserProfiles();
   const { posts, deletePost } = useApp();
   const [userSearch, setUserSearch] = useState("");
+  const allRegistryUsers = getAllUsers();
 
   if (isLoading) {
     return (
@@ -102,8 +104,8 @@ export function AdminPage() {
     );
   }
 
-  // Show admin panel even if not confirmed admin (mock data available)
-  const displayUsers = MOCK_USERS.filter(
+  // Show admin panel even if not confirmed admin (real registry data)
+  const displayUsers = allRegistryUsers.filter(
     (u) =>
       !userSearch ||
       u.username.toLowerCase().includes(userSearch.toLowerCase()),
@@ -249,16 +251,24 @@ export function AdminPage() {
               <TableBody>
                 {displayUsers.map((user) => (
                   <TableRow
-                    key={user.id}
+                    key={user.username}
                     className="border-white/8 hover:bg-white/5"
                   >
                     <TableCell>
                       <div className="flex items-center gap-2.5">
-                        <img
-                          src={user.avatarUrl}
-                          alt=""
-                          className="w-8 h-8 rounded-full"
-                        />
+                        {user.avatarUrl ? (
+                          <img
+                            src={user.avatarUrl}
+                            alt=""
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center">
+                            <span className="text-xs font-bold text-white">
+                              {user.username[0]?.toUpperCase()}
+                            </span>
+                          </div>
+                        )}
                         <div>
                           <p className="text-sm font-medium text-white">
                             {user.username}
@@ -269,23 +279,14 @@ export function AdminPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-white/70">
-                      {formatCount(user.followersCount)}
-                    </TableCell>
-                    <TableCell className="text-sm text-white/70">
-                      {user.postsCount}
-                    </TableCell>
+                    <TableCell className="text-sm text-white/70">—</TableCell>
+                    <TableCell className="text-sm text-white/70">—</TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"
-                        className={cn(
-                          "text-xs border",
-                          user.isVerified
-                            ? "border-accent/50 text-accent"
-                            : "border-white/20 text-white/40",
-                        )}
+                        className="text-xs border border-white/20 text-white/40"
                       >
-                        {user.isVerified ? "Verified" : "User"}
+                        User
                       </Badge>
                     </TableCell>
                     <TableCell>

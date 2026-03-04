@@ -1,7 +1,7 @@
 import { useAuthContext } from "@/components/auth/AuthContext";
-import { GlassButton } from "@/components/glass/GlassButton";
 import { MusicSearchPicker } from "@/components/music/MusicSearchPicker";
-import { MOCK_NOTES, formatRelativeTime } from "@/data/mockData";
+import { useApp } from "@/context/AppContext";
+import { formatRelativeTime } from "@/data/mockData";
 import type { MockNote, MockUser, MusicTrack } from "@/types";
 import {
   Music,
@@ -347,28 +347,42 @@ function NoteDetail({ note, onClose }: NoteDetailProps) {
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.88, opacity: 0, y: 20 }}
         transition={{ duration: 0.25, ease: [0.34, 1.56, 0.64, 1] }}
-        className="w-full max-w-xs relative overflow-hidden rounded-3xl"
+        className="w-full max-w-[300px] relative overflow-hidden rounded-3xl"
         style={{
           background:
-            "linear-gradient(160deg, #1a0a2e 0%, #0f0f1a 60%, #0a0a12 100%)",
-          border: "1px solid rgba(255,255,255,0.08)",
+            "linear-gradient(135deg, rgba(124,58,237,0.18) 0%, rgba(219,39,119,0.12) 50%, rgba(10,10,18,0.96) 100%)",
+          backdropFilter: "blur(40px) saturate(180%)",
+          WebkitBackdropFilter: "blur(40px) saturate(180%)",
+          border: "1px solid rgba(255,255,255,0.15)",
           boxShadow:
-            "0 32px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04)",
+            "0 0 60px rgba(124,58,237,0.2), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.1)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Inner glow overlay */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "radial-gradient(ellipse at top, rgba(139,92,246,0.18) 0%, transparent 65%)",
+            pointerEvents: "none",
+            borderRadius: "inherit",
+          }}
+        />
+
         {/* Close button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-all"
+          className="absolute top-3 right-3 z-10 w-7 h-7 flex items-center justify-center rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-all"
           aria-label="Close note"
         >
-          <X size={16} />
+          <X size={14} />
         </button>
 
         {/* Avatar + note bubble */}
-        <div className="flex flex-col items-center px-6 pt-8 pb-6">
+        <div className="flex flex-col items-center px-5 pt-5 pb-5">
           {/* Note speech bubble */}
           <div
             className="mb-3 w-full max-w-[220px] rounded-2xl rounded-bl-sm px-4 py-3 text-sm text-white text-center leading-relaxed relative"
@@ -649,6 +663,7 @@ interface NotesPanelProps {
 
 export function NotesPanel({ compact = false }: NotesPanelProps) {
   const { currentUser } = useAuthContext();
+  const { notes, addNote, removeNote } = useApp();
   const ME: MockUser = {
     id: "me",
     username: currentUser?.username ?? "you",
@@ -664,24 +679,24 @@ export function NotesPanel({ compact = false }: NotesPanelProps) {
     isVerified: false,
   };
 
-  const [notes, setNotes] = useState<MockNote[]>(MOCK_NOTES);
   const [selectedNote, setSelectedNote] = useState<MockNote | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [myNotePopupOpen, setMyNotePopupOpen] = useState(false);
 
-  const myNote = notes.find((n) => n.author.id === ME.id);
-  const otherNotes = notes.filter((n) => n.author.id !== ME.id);
+  const myNote = notes.find(
+    (n) => n.author.id === ME.id || n.author.username === ME.username,
+  );
+  const otherNotes = notes.filter(
+    (n) => n.author.id !== ME.id && n.author.username !== ME.username,
+  );
 
   const handleShare = (note: MockNote) => {
-    setNotes((prev) => {
-      const filtered = prev.filter((n) => n.author.id !== ME.id);
-      return [note, ...filtered];
-    });
+    addNote(note);
   };
 
   const handleRemoveMyNote = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setNotes((prev) => prev.filter((n) => n.author.id !== ME.id));
+    if (myNote) removeNote(myNote.id);
     toast.success("Note removed");
   };
 

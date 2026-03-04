@@ -1,6 +1,8 @@
+import { useAuthContext } from "@/components/auth/AuthContext";
 import { GlassInput } from "@/components/glass/GlassInput";
-import { MOCK_STORIES } from "@/data/mockData";
+import { useApp } from "@/context/AppContext";
 import { cn } from "@/lib/utils";
+import type { MockConversation, MockMessage, MockStory } from "@/types";
 import { useNavigate } from "@tanstack/react-router";
 import {
   ChevronLeft,
@@ -25,9 +27,9 @@ const REACTIONS = ["❤️", "🔥", "😮", "😂", "🙌"];
 
 // Group stories by author
 function groupStoriesByAuthor(
-  stories: typeof MOCK_STORIES,
-): { userId: string; stories: typeof MOCK_STORIES }[] {
-  const map = new Map<string, typeof MOCK_STORIES>();
+  stories: MockStory[],
+): { userId: string; stories: MockStory[] }[] {
+  const map = new Map<string, MockStory[]>();
   for (const story of stories) {
     const uid = story.author.id;
     if (!map.has(uid)) map.set(uid, []);
@@ -41,9 +43,19 @@ function groupStoriesByAuthor(
 
 export function StoryViewer({ userId }: StoryViewerProps) {
   const navigate = useNavigate();
+  const {
+    stories: allStories,
+    sendMessage,
+    addConversation,
+    conversations,
+  } = useApp();
+  const { currentUser } = useAuthContext();
 
   // All stories grouped by user
-  const userGroups = useMemo(() => groupStoriesByAuthor(MOCK_STORIES), []);
+  const userGroups = useMemo(
+    () => groupStoriesByAuthor(allStories),
+    [allStories],
+  );
 
   // Find starting group index
   const startGroupIndex = useMemo(
@@ -62,37 +74,55 @@ export function StoryViewer({ userId }: StoryViewerProps) {
   const [replyText, setReplyText] = useState("");
   const [floatingReaction, setFloatingReaction] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
+  const [viewersTrayOpen, setViewersTrayOpen] = useState(false);
   const [commentsTrayOpen, setCommentsTrayOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [storyComments, setStoryComments] = useState<
     { id: string; text: string; author: string; time: string }[]
-  >([
-    {
-      id: "sc1",
-      text: "This is amazing! 🔥",
-      author: "aurora.lens",
-      time: "2m",
-    },
-    { id: "sc2", text: "Love the vibes ✨", author: "neon.nomad", time: "5m" },
-    {
-      id: "sc3",
-      text: "Iconic as always 👑",
-      author: "velvet.sky",
-      time: "8m",
-    },
-  ]);
+  >([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const currentGroup = userGroups[groupIndex];
   const currentUserStories = currentGroup?.stories ?? [];
   const currentStory = currentUserStories[storyIndex];
 
-  // Viewer counts stable per session
-  // biome-ignore lint/correctness/useExhaustiveDependencies: stable per group
-  const viewerCount = useMemo(
-    () => currentUserStories.map(() => Math.floor(Math.random() * 500 + 100)),
-    [groupIndex],
-  );
+  // Track story views in localStorage
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — track on story change
+  useEffect(() => {
+    if (!currentStory) return;
+    const viewKey = `lumina_story_views_${currentStory.id}`;
+    try {
+      const existing = JSON.parse(localStorage.getItem(viewKey) ?? "[]") as {
+        username: string;
+        timestamp: string;
+      }[];
+      const viewerUsername = "me";
+      if (!existing.find((v) => v.username === viewerUsername)) {
+        existing.push({
+          username: viewerUsername,
+          timestamp: new Date().toISOString(),
+        });
+        localStorage.setItem(viewKey, JSON.stringify(existing));
+      }
+    } catch {
+      // ignore
+    }
+  }, [storyIndex, groupIndex]);
+
+  // Get real view count for the current story
+  // biome-ignore lint/correctness/useExhaustiveDependencies: storyIndex/groupIndex refreshes count on navigation
+  const realViewCount = useMemo(() => {
+    if (!currentStory) return 0;
+    try {
+      const viewKey = `lumina_story_views_${currentStory.id}`;
+      const existing = JSON.parse(
+        localStorage.getItem(viewKey) ?? "[]",
+      ) as object[];
+      return existing.length;
+    } catch {
+      return 0;
+    }
+  }, [currentStory, storyIndex, groupIndex]);
 
   const goNext = useCallback(() => {
     // Try to advance to next story in current user group
@@ -202,6 +232,61 @@ export function StoryViewer({ userId }: StoryViewerProps) {
     toast.success("Story link copied!");
   };
 
+  const handleSendReply = () => {
+    if (!replyText.trim() || !currentStory) return;
+    const storyAuthor = currentStory.author;
+    const convId = `conv_story_${storyAuthor.username}`;
+    // Ensure conversation exists
+    const existingConv = conversations.find((c) => c.id === convId);
+    if (!existingConv) {
+      const newConv: MockConversation = {
+        id: convId,
+        participants: [
+          storyAuthor,
+          {
+            id: "me",
+            username: currentUser?.username ?? "me",
+            displayName: currentUser?.displayName ?? "You",
+            avatarUrl: currentUser?.avatarUrl ?? "",
+            bio: "",
+            websiteUrl: "",
+            isPrivate: false,
+            followersCount: 0,
+            followingCount: 0,
+            postsCount: 0,
+            isFollowing: false,
+            isVerified: false,
+          },
+        ],
+        lastMessage: {
+          id: `reply_init_${Date.now()}`,
+          senderId: "me",
+          text: replyText.trim(),
+          timestamp: new Date(),
+          isRead: false,
+          type: "text",
+        },
+        isGroup: false,
+        isPinned: false,
+        isMuted: false,
+        unreadCount: 0,
+      };
+      addConversation(newConv);
+    }
+    const msg: MockMessage = {
+      id: `reply_${Date.now()}`,
+      senderId: "me",
+      text: `Replied to story: ${replyText.trim()}`,
+      timestamp: new Date(),
+      isRead: false,
+      type: "text",
+    };
+    sendMessage(convId, msg);
+    setReplyText("");
+    setIsPaused(false);
+    toast.success(`Reply sent to @${storyAuthor.username}`);
+  };
+
   if (!currentStory) {
     navigate({ to: "/" });
     return null;
@@ -308,13 +393,19 @@ export function StoryViewer({ userId }: StoryViewerProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* Viewer count */}
-            <div className="flex items-center gap-1 bg-black/30 rounded-full px-2 py-0.5">
+            {/* Viewer count — clickable for story author */}
+            <button
+              type="button"
+              onClick={() => {
+                setViewersTrayOpen(true);
+                setIsPaused(true);
+              }}
+              className="flex items-center gap-1 bg-black/30 rounded-full px-2 py-0.5 hover:bg-black/50 transition-colors"
+              aria-label="View story viewers"
+            >
               <Eye size={12} className="text-white/70" />
-              <span className="text-xs text-white/70">
-                {viewerCount[storyIndex] ?? 0}
-              </span>
-            </div>
+              <span className="text-xs text-white/70">{realViewCount}</span>
+            </button>
             {/* Share */}
             <button
               type="button"
@@ -430,9 +521,28 @@ export function StoryViewer({ userId }: StoryViewerProps) {
                 onBlur={() => {
                   if (!replyText) setIsPaused(false);
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && replyText.trim()) {
+                    handleSendReply();
+                  }
+                }}
                 className="text-white text-sm"
               />
             </div>
+            {replyText.trim() && (
+              <motion.button
+                type="button"
+                onClick={handleSendReply}
+                whileTap={{ scale: 0.85 }}
+                className="w-9 h-9 flex items-center justify-center rounded-full text-white flex-shrink-0"
+                style={{
+                  background: "linear-gradient(135deg, #7c3aed, #db2777)",
+                }}
+                aria-label="Send reply"
+              >
+                <Send size={16} />
+              </motion.button>
+            )}
             {/* Comments button */}
             <motion.button
               type="button"
@@ -466,6 +576,97 @@ export function StoryViewer({ userId }: StoryViewerProps) {
             </motion.button>
           </div>
         </div>
+
+        {/* Viewers tray */}
+        <AnimatePresence>
+          {viewersTrayOpen && (
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="absolute left-0 right-0 bottom-0 z-30 flex flex-col"
+              style={{
+                height: "55%",
+                background: "rgba(0,0,0,0.75)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+                borderRadius: "24px 24px 0 0",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderBottom: "none",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-5 pt-4 pb-2 flex-shrink-0">
+                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                  <Eye size={14} className="text-violet-400" />
+                  Viewers ({realViewCount})
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewersTrayOpen(false);
+                    setIsPaused(false);
+                  }}
+                  className="w-7 h-7 flex items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-all"
+                  aria-label="Close viewers"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+              <div className="flex justify-center pb-2 flex-shrink-0">
+                <div className="w-8 h-0.5 rounded-full bg-white/20" />
+              </div>
+              <div
+                className="flex-1 overflow-y-auto px-4 space-y-2 pb-4"
+                style={{ scrollbarWidth: "none" }}
+              >
+                {realViewCount === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-white/30">
+                    <Eye size={28} className="mb-2 opacity-40" />
+                    <p className="text-sm">No views yet</p>
+                  </div>
+                ) : (
+                  (() => {
+                    try {
+                      const viewKey = `lumina_story_views_${currentStory.id}`;
+                      const viewers = JSON.parse(
+                        localStorage.getItem(viewKey) ?? "[]",
+                      ) as { username: string; timestamp: string }[];
+                      return viewers.map((v, i) => (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: stable list
+                        <div key={i} className="flex items-center gap-3 py-1">
+                          <div
+                            className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                            style={{
+                              background:
+                                "linear-gradient(135deg, #7c3aed, #db2777)",
+                            }}
+                          >
+                            {v.username[0]?.toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-white">
+                              @{v.username}
+                            </p>
+                            <p className="text-xs text-white/40">
+                              {new Date(v.timestamp).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      ));
+                    } catch {
+                      return null;
+                    }
+                  })()
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Comments tray */}
         <AnimatePresence>

@@ -1,21 +1,32 @@
 import { useAuthContext } from "@/components/auth/AuthContext";
 import { CommentDrawer } from "@/components/feed/CommentDrawer";
 import { ShareModal } from "@/components/feed/ShareModal";
-import { MOCK_REELS, formatCount } from "@/data/mockData";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useApp } from "@/context/AppContext";
+import { formatCount } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import type { MockComment, MockReel } from "@/types";
 import { Link } from "@tanstack/react-router";
 import {
   Bookmark,
+  Flag,
   Heart,
   MessageCircle,
   MoreHorizontal,
   Share2,
+  ThumbsDown,
   Volume2,
   VolumeX,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 function ReelCard({
   reel,
@@ -25,6 +36,7 @@ function ReelCard({
   isActive: boolean;
 }) {
   const { currentUser } = useAuthContext();
+  const { toggleReelLike, toggleReelSave } = useApp();
   const [isLiked, setIsLiked] = useState(reel.isLiked);
   const [isSaved, setIsSaved] = useState(reel.isSaved);
   const [isMuted, setIsMuted] = useState(false);
@@ -34,6 +46,10 @@ function ReelCard({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [localComments, setLocalComments] = useState<MockComment[]>([]);
   const [commentCountOffset, setCommentCountOffset] = useState(0);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [selectedReportReason, setSelectedReportReason] = useState<
+    string | null
+  >(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Play/pause with unmuted audio; fallback to muted if autoplay blocked
@@ -53,14 +69,13 @@ function ReelCard({
       });
     } else {
       videoRef.current.pause();
-      // Reset autoplay blocked state so the next time this reel becomes active
-      // it tries with audio again
       setAutoplayBlocked(false);
     }
   }, [isActive]);
 
   const handleLike = () => {
     setIsLiked(!isLiked);
+    toggleReelLike(reel.id);
     if (!isLiked) {
       setShowLike(true);
       setTimeout(() => setShowLike(false), 800);
@@ -84,6 +99,12 @@ function ReelCard({
       videoRef.current.muted = false;
       videoRef.current.volume = 1;
     }
+  };
+
+  const handleSave = () => {
+    setIsSaved(!isSaved);
+    toggleReelSave(reel.id);
+    toast(isSaved ? "Removed from saved" : "Reel saved", { duration: 2000 });
   };
 
   const handleAddComment = (text: string) => {
@@ -111,6 +132,22 @@ function ReelCard({
     setLocalComments((prev) => [...prev, newComment]);
     setCommentCountOffset((prev) => prev + 1);
   };
+
+  const handleReportSubmit = () => {
+    if (!selectedReportReason) return;
+    toast.success(`Report submitted: ${selectedReportReason}`, {
+      description: "Thanks for keeping Lumina safe.",
+    });
+    setReportOpen(false);
+    setSelectedReportReason(null);
+  };
+
+  const REPORT_REASONS = [
+    "Inappropriate",
+    "Spam",
+    "Misinformation",
+    "Other",
+  ] as const;
 
   return (
     <div className="relative w-full h-full flex-shrink-0 bg-black">
@@ -177,6 +214,7 @@ function ReelCard({
           whileTap={{ scale: 0.85 }}
           className="flex flex-col items-center gap-1"
           aria-label={isLiked ? "Unlike reel" : "Like reel"}
+          data-ocid="reels.toggle"
         >
           <div
             className={cn(
@@ -201,6 +239,7 @@ function ReelCard({
           onClick={() => setIsCommentDrawerOpen(true)}
           className="flex flex-col items-center gap-1"
           aria-label="Comment on reel"
+          data-ocid="reels.secondary_button"
         >
           <div className="w-11 h-11 rounded-full glass flex items-center justify-center">
             <MessageCircle size={22} className="text-white" />
@@ -215,6 +254,7 @@ function ReelCard({
           onClick={() => setIsShareModalOpen(true)}
           className="flex flex-col items-center gap-1"
           aria-label="Share reel"
+          data-ocid="reels.button"
         >
           <div className="w-11 h-11 rounded-full glass flex items-center justify-center">
             <Share2 size={22} className="text-white" />
@@ -225,7 +265,7 @@ function ReelCard({
         </button>
 
         <motion.button
-          onClick={() => setIsSaved(!isSaved)}
+          onClick={handleSave}
           whileTap={{ scale: 0.85 }}
           className="flex flex-col items-center gap-1"
           aria-label={isSaved ? "Unsave reel" : "Save reel"}
@@ -255,6 +295,9 @@ function ReelCard({
               src={reel.author.avatarUrl}
               alt={reel.author.displayName}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
             />
           </div>
         </Link>
@@ -302,14 +345,158 @@ function ReelCard({
             <Volume2 size={16} className="text-white" />
           )}
         </button>
-        <button
-          type="button"
-          className="w-9 h-9 rounded-full glass flex items-center justify-center"
-          aria-label="More options"
-        >
-          <MoreHorizontal size={16} className="text-white" />
-        </button>
+
+        {/* ── Triple-dot menu (now working) ── */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="w-9 h-9 rounded-full glass flex items-center justify-center"
+              aria-label="More options"
+              data-ocid="reels.dropdown_menu"
+            >
+              <MoreHorizontal size={16} className="text-white" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="border-white/10 text-white min-w-[180px]"
+            style={{
+              background: "rgba(14,14,20,0.97)",
+              backdropFilter: "blur(16px)",
+            }}
+          >
+            <DropdownMenuItem
+              className="hover:bg-white/10 cursor-pointer gap-2 text-sm"
+              onClick={handleSave}
+            >
+              <Bookmark size={14} className="text-white/60" />
+              {isSaved ? "Unsave Reel" : "Save Reel"}
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              className="hover:bg-white/10 cursor-pointer gap-2 text-sm"
+              onClick={() => setIsShareModalOpen(true)}
+            >
+              <Share2 size={14} className="text-white/60" />
+              Share
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator className="bg-white/08" />
+
+            <DropdownMenuItem
+              className="hover:bg-white/10 cursor-pointer gap-2 text-sm"
+              onClick={() => {
+                toast("We'll show you less of this");
+              }}
+            >
+              <ThumbsDown size={14} className="text-white/60" />
+              Not Interested
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              className="hover:bg-red-500/15 cursor-pointer gap-2 text-sm text-red-400"
+              onClick={() => setReportOpen(true)}
+            >
+              <Flag size={14} />
+              Report
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      {/* Report dialog */}
+      <AnimatePresence>
+        {reportOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60"
+            onClick={() => setReportOpen(false)}
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-sm rounded-t-3xl sm:rounded-3xl overflow-hidden"
+              style={{
+                background: "rgba(14,14,20,0.97)",
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-5 pt-5 pb-3 border-b border-white/08">
+                <p className="text-white text-base font-semibold flex items-center gap-2">
+                  <Flag size={16} className="text-red-400" />
+                  Report Reel
+                </p>
+                <p className="text-xs text-white/40 mt-1">
+                  Why are you reporting this reel?
+                </p>
+              </div>
+              <div className="px-5 py-3 space-y-1.5">
+                {REPORT_REASONS.map((reason) => (
+                  <button
+                    key={reason}
+                    type="button"
+                    onClick={() => setSelectedReportReason(reason)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-left transition-all",
+                      selectedReportReason === reason
+                        ? "text-white bg-violet-500/20 border border-violet-500/40"
+                        : "text-white/70 hover:text-white hover:bg-white/05 border border-transparent",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center",
+                        selectedReportReason === reason
+                          ? "border-violet-400"
+                          : "border-white/25",
+                      )}
+                    >
+                      {selectedReportReason === reason && (
+                        <div className="w-2 h-2 rounded-full bg-violet-400" />
+                      )}
+                    </div>
+                    {reason}
+                  </button>
+                ))}
+              </div>
+              <div className="px-5 py-4 flex gap-3 border-t border-white/08">
+                <button
+                  type="button"
+                  onClick={() => setReportOpen(false)}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white/60 hover:text-white transition-colors"
+                  style={{ background: "rgba(255,255,255,0.06)" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReportSubmit}
+                  disabled={!selectedReportReason}
+                  className={cn(
+                    "flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all",
+                    selectedReportReason
+                      ? "text-white hover:opacity-90"
+                      : "text-white/30 cursor-not-allowed",
+                  )}
+                  style={{
+                    background: selectedReportReason
+                      ? "rgba(239,68,68,0.8)"
+                      : "rgba(255,255,255,0.05)",
+                  }}
+                >
+                  Report
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Comment Drawer */}
       <CommentDrawer
@@ -332,6 +519,7 @@ function ReelCard({
 }
 
 export function ReelsPage() {
+  const { reels } = useApp();
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -342,6 +530,28 @@ export function ReelsPage() {
     setCurrentIndex(index);
   };
 
+  if (reels.length === 0) {
+    return (
+      <div
+        className="flex items-center justify-center text-white/30"
+        style={{ height: "100dvh" }}
+        data-ocid="reels.empty_state"
+      >
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full border-2 border-white/15 flex items-center justify-center mx-auto mb-4">
+            <Heart size={28} className="opacity-30" />
+          </div>
+          <p className="text-lg font-semibold text-white/50 mb-1">
+            No Reels Yet
+          </p>
+          <p className="text-sm text-white/30">
+            Upload your first reel to get started
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ height: "100dvh", overflow: "hidden" }}>
       <div
@@ -350,7 +560,7 @@ export function ReelsPage() {
         style={{ scrollbarWidth: "none" }}
         onScroll={handleScroll}
       >
-        {MOCK_REELS.map((reel, i) => (
+        {reels.map((reel, i) => (
           <div
             key={reel.id}
             className="w-full snap-start snap-always flex items-center justify-center lg:gap-8"
@@ -381,6 +591,9 @@ export function ReelsPage() {
                       src={reel.author.avatarUrl}
                       alt={reel.author.displayName}
                       className="w-12 h-12 rounded-full object-cover ring-2 ring-primary/40"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
                     />
                   </Link>
                   <div>

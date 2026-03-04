@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useApp } from "@/context/AppContext";
-import { MOCK_USERS, formatCount, formatRelativeTime } from "@/data/mockData";
+import { formatCount, formatRelativeTime } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import type { MockPost } from "@/types";
 import { Link } from "@tanstack/react-router";
@@ -91,7 +91,21 @@ export function PostCard({ post }: PostCardProps) {
         isVerified: false,
       };
     }
-    return MOCK_USERS[1]; // aurora.lens is the default mock logged-in user
+    // Fallback anonymous user
+    return {
+      id: "anon",
+      username: "user",
+      displayName: "User",
+      bio: "",
+      avatarUrl: "",
+      websiteUrl: "",
+      isPrivate: false,
+      followersCount: 0,
+      followingCount: 0,
+      postsCount: 0,
+      isFollowing: false,
+      isVerified: false,
+    };
   }, [currentUser]);
 
   const handleAddComment = useCallback(

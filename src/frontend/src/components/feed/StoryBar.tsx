@@ -1,23 +1,20 @@
+import { useAuthContext } from "@/components/auth/AuthContext";
 import { GlassAvatar } from "@/components/glass/GlassAvatar";
 import { CreateStoryModal } from "@/components/stories/CreateStoryModal";
-import { MOCK_STORIES, MOCK_USERS } from "@/data/mockData";
+import { useApp } from "@/context/AppContext";
 import type { MockStory } from "@/types";
 import { useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-const ME = MOCK_USERS[1]; // aurora.lens is the default mock logged-in user
-
 export function StoryBar() {
   const navigate = useNavigate();
+  const { currentUser } = useAuthContext();
+  const { stories, addStory } = useApp();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [extraStories, setExtraStories] = useState<MockStory[]>([]);
-
-  const allStories = [...extraStories, ...MOCK_STORIES];
 
   const handleShare = (story: MockStory) => {
-    setExtraStories((prev) => [story, ...prev]);
-    // Navigate to new story's viewer after sharing
+    addStory(story);
     navigate({ to: "/stories/$userId", params: { userId: story.author.id } });
   };
 
@@ -36,7 +33,15 @@ export function StoryBar() {
               aria-label="Add to your story"
               onClick={() => setIsCreateOpen(true)}
             >
-              <Plus size={22} className="text-white/60" />
+              {currentUser?.avatarUrl ? (
+                <img
+                  src={currentUser.avatarUrl}
+                  alt="Your story"
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <Plus size={22} className="text-white/60" />
+              )}
               <div className="absolute bottom-0 right-0 w-4.5 h-4.5 rounded-full gradient-bg flex items-center justify-center">
                 <Plus size={10} className="text-white" />
               </div>
@@ -46,8 +51,8 @@ export function StoryBar() {
             </span>
           </div>
 
-          {/* Stories from mock data */}
-          {allStories.map((story) => (
+          {/* Stories */}
+          {stories.map((story) => (
             <div
               key={story.id}
               className="flex flex-col items-center gap-1.5 flex-shrink-0"
@@ -77,10 +82,10 @@ export function StoryBar() {
         open={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onShare={handleShare}
-        currentUserId={ME.id}
-        currentUserAvatarUrl={ME.avatarUrl}
-        currentUserDisplayName={ME.displayName}
-        currentUsername={ME.username}
+        currentUserId={currentUser?.username ?? "me"}
+        currentUserAvatarUrl={currentUser?.avatarUrl ?? ""}
+        currentUserDisplayName={currentUser?.displayName ?? "You"}
+        currentUsername={currentUser?.username ?? "you"}
       />
     </>
   );

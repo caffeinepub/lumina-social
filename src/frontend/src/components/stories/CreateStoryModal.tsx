@@ -358,14 +358,15 @@ export function CreateStoryModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md md:backdrop-blur-md"
+          style={{ WebkitBackdropFilter: "blur(12px)" }}
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="relative w-full max-w-4xl h-[calc(100vh-40px)] max-h-[800px] flex flex-col"
+            className="relative w-full max-w-4xl h-[100dvh] md:h-[calc(100vh-40px)] md:max-h-[800px] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Top bar */}
@@ -393,9 +394,9 @@ export function CreateStoryModal({
             </div>
 
             {/* Main content */}
-            <div className="flex flex-1 gap-4 px-5 pb-5 min-h-0">
+            <div className="flex flex-1 gap-4 px-3 md:px-5 pb-5 min-h-0 overflow-hidden">
               {/* Left sidebar - tools */}
-              <div className="w-72 flex-shrink-0 glass-card rounded-2xl border border-white/10 flex flex-col overflow-hidden">
+              <div className="w-full md:w-72 flex-shrink-0 glass-card rounded-2xl border border-white/10 flex flex-col overflow-hidden md:max-w-[288px]">
                 {/* Tab buttons */}
                 <div className="flex border-b border-white/8">
                   {tabs.map((tab) => (
@@ -697,7 +698,7 @@ export function CreateStoryModal({
               </div>
 
               {/* Center: large canvas preview */}
-              <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+              <div className="hidden md:flex flex-1 flex-col items-center justify-center min-h-0">
                 <div
                   className="relative rounded-3xl overflow-hidden shadow-2xl"
                   style={{

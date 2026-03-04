@@ -2,6 +2,8 @@ import { AuthProvider } from "@/components/auth/AuthContext";
 import { AppShell } from "@/components/layout/AppShell";
 import { StoryViewer } from "@/components/stories/StoryViewer";
 import { AppProvider } from "@/context/AppContext";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { AccountsCentrePage } from "@/pages/AccountsCentrePage";
 import { AdminPage } from "@/pages/AdminPage";
 import { EditProfilePage } from "@/pages/EditProfilePage";
 import { ExplorePage } from "@/pages/ExplorePage";
@@ -24,11 +26,13 @@ import {
 // Root route
 const rootRoute = createRootRoute({
   component: () => (
-    <AuthProvider>
-      <AppProvider>
-        <Outlet />
-      </AppProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppProvider>
+          <Outlet />
+        </AppProvider>
+      </AuthProvider>
+    </ThemeProvider>
   ),
 });
 
@@ -117,6 +121,12 @@ const adminRoute = createRoute({
   component: AdminPage,
 });
 
+const accountsCentreRoute = createRoute({
+  getParentRoute: () => shellRoute,
+  path: "/accounts-centre",
+  component: AccountsCentrePage,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   signupRoute,
@@ -131,6 +141,7 @@ const routeTree = rootRoute.addChildren([
     storiesRoute,
     settingsRoute,
     adminRoute,
+    accountsCentreRoute,
   ]),
 ]);
 
